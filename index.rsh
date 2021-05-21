@@ -8,11 +8,12 @@ const Player =
   ...hasRandom,
   informTimeout: Fun([], Null),
   seeMap: Fun([Array(Object({ rss: UInt, roll: UInt }), MAP_SIZE)], Null),
-  getSeed: Fun([UInt], Null),
+  getSeed: Fun([], UInt),
 };
 const Alice = {
   ...Player,
-  wager: UInt
+  wager: UInt,
+  testaroonie: UInt,
 };
 const Bob = {
   ...Player,
@@ -73,7 +74,8 @@ export const main = Reach.App(
     //  .timeout(DEADLINE, () => closeTo(B, informTimeout));
     commit();
 
-    unknowable([B, C], A(_seedA, _saltA));
+    unknowable(B, A(_seedA, _saltA));
+    unknowable(C, A(_seedA, _saltA));
     B.only(() => {
       const _seedB = interact.getSeed();
       const [_commitB, _saltB] = makeCommitment(interact, _seedB);
@@ -83,7 +85,8 @@ export const main = Reach.App(
     //  .timeout(DEADLINE, () => closeTo(B, informTimeout));
     commit();
 
-    unknowable([A, C], B(_seedB, _saltB));
+    unknowable(A, B(_seedB, _saltB));
+    unknowable(C, B(_seedB, _saltB));
     C.only(() => {
       const seedC = declassify(interact.getSeed());
     });
@@ -95,19 +98,22 @@ export const main = Reach.App(
       const [saltA, seedA] = declassify([_saltA, _seedA]);
     });
     A.publish(saltA, seedA);
-    B.only(() => {
-      const [saltB, seedB] = declassify([_saltB, _saltB]);
-    });
-    //  .timeout(DEADLINE, () => closeTo(B, informTimeout));
     checkCommitment(commitA, saltA, seedA);
+    commit();
+
+    B.only(() => {
+      const [saltB, seedB] = declassify([_saltB, _seedB]);
+    });
+    B.publish(saltB, seedB);
     checkCommitment(commitB, saltB, seedB);
+    commit();
 
     // seed is calculated from the (hopefully random) input of each player
     const seed = seedA + seedB + seedC;
 
     // decides the world
     // didnt want to make algorithm for good random world bc im lazy so you get this
-    interact.each([A, B, C], () => {
+    each([A, B, C], () => {
       const map = array(Object({ rss: UInt, roll: UInt }), [
         { rss: seed + 6 % RSS_ENUM_SIZE, roll: seed + 9 % 8 },
         { rss: seed % RSS_ENUM_SIZE, roll: seed % 8 },
@@ -124,7 +130,7 @@ export const main = Reach.App(
 
     // alice always wins in this scenario (pending actual logic)
     A.only(() => {
-      const Apotatoes = declassify(interact.potatoes);
+      const Apotatoes = declassify(interact.testaroonie);
     });
     A.publish(Apotatoes);
 
