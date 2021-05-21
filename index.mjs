@@ -7,21 +7,63 @@ import * as backend from './build/index.main.mjs';
 
   const alice = await stdlib.newTestAccount(startingBalance);
   const bob = await stdlib.newTestAccount(startingBalance);
+  const carl = await stdlib.newTestAccount(startingBalance);
 
   const ctcAlice = alice.deploy(backend);
   const ctcBob = bob.attach(backend, ctcAlice.getInfo());
+  const ctcCarl = carl.attach(backend, ctcAlice.getInfo());
+
+  const fmt = (x) => stdlib.formatCurrency(x, 4);
+  const getBalance = async (who) => fmt(await stdlib.balanceOf(who));
+  const beforeAlice = await getBalance(alice);
+
+  const informTimeout = () => {
+    console.log(`${Who} observed a timeout!`);
+  };
+  const startingValues = {
+    potatoes: 0,
+    ore: 0,
+    wood: 0,
+    bricks: 0,
+  }
+  const acceptWager = async (amt, name) => {
+    if(Math.random() <= 0) {
+      console.log('Taking too long');
+      await stdlib.wait(10);
+    } else {
+      console.log(name + " accepts the wager of " + fmt(amt));
+    }
+  }
+
+  console.log('Hello everyone!');
+  const interact = { ...stdlib.hasRandom };
 
   await Promise.all([
     backend.Alice(ctcAlice, {
-      ...stdlib.hasRandom
+      ...stdlib.hasRandom,
+      informTimeout: informTimeout,
+      wager: stdlib.parseCurrency(25),
+      //...startingValues,
     }),
     backend.Bob(ctcBob, {
-      ...stdlib.hasRandom
+      ...stdlib.hasRandom,
+      informTimeout: informTimeout,
+      //...startingValues,
+      acceptWager: (amt) => { acceptWager(amt, 'bob'); },
     }),
     backend.Carl(ctcCarl, {
-      ...stdlib.hasRandom
+      ...stdlib.hasRandom,
+      informTimeout: informTimeout,
+      //...startingValues,
+      acceptWager: (amt) => { acceptWager(amt, 'carl'); },
     })
   ]);
 
-  console.log('Hello, Alice and Bob!');
+  interact.seeMap = (obj) => {
+    console.log(obj);
+  }
+
+  const afterAlice = await getBalance(alice);
+  console.log(`Alice went from ${beforeAlice} to ${afterAlice}.`);
+
 })();
