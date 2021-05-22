@@ -17,9 +17,6 @@ import * as backend from './build/index.main.mjs';
   const getBalance = async (who) => fmt(await stdlib.balanceOf(who));
   const beforeAlice = await getBalance(alice);
 
-  const informTimeout = () => {
-    console.log(`${Who} observed a timeout!`);
-  };
   const startingValues = {
     potatoes: 0,
     ore: 0,
@@ -36,32 +33,41 @@ import * as backend from './build/index.main.mjs';
   }
 
   console.log('Hello everyone!');
-  const interact = { ...stdlib.hasRandom };
+
+  const playerInteract = { 
+    ...stdlib.hasRandom
+  };
+
+  playerInteract.informTimeout = () => {
+    console.log(`${Who} observed a timeout!`);
+  };
+
+  playerInteract.seeMap = (obj) => {
+    console.log(obj);;
+  };
+
+  playerInteract.getSeed = () => {
+    return Math.floor(Math.random() * (10000000));
+  }
 
   await Promise.all([
     backend.Alice(ctcAlice, {
-      ...stdlib.hasRandom,
-      informTimeout: informTimeout,
+      ...playerInteract,
       wager: stdlib.parseCurrency(25),
+      testaroonie: 4,
       //...startingValues,
     }),
     backend.Bob(ctcBob, {
-      ...stdlib.hasRandom,
-      informTimeout: informTimeout,
+      ...playerInteract,
       //...startingValues,
       acceptWager: (amt) => { acceptWager(amt, 'bob'); },
     }),
     backend.Carl(ctcCarl, {
-      ...stdlib.hasRandom,
-      informTimeout: informTimeout,
+      ...playerInteract,
       //...startingValues,
       acceptWager: (amt) => { acceptWager(amt, 'carl'); },
     })
   ]);
-
-  interact.seeMap = (obj) => {
-    console.log(obj);
-  }
 
   const afterAlice = await getBalance(alice);
   console.log(`Alice went from ${beforeAlice} to ${afterAlice}.`);
