@@ -1,6 +1,13 @@
 import { loadStdlib } from '@reach-sh/stdlib';
 import * as backend from './build/index.main.mjs';
 
+const RSS_ENUM = [
+  "Potato", "Ore", "Wood", "Brick", "Coal"
+];
+const _ENUM = [
+  "P"
+];
+
 (async () => {
   const stdlib = await loadStdlib();
   const startingBalance = stdlib.parseCurrency(100);
@@ -43,7 +50,11 @@ import * as backend from './build/index.main.mjs';
   };
 
   playerInteract.seeMap = (obj) => {
-    console.log(obj);;
+    console.log("------------------------------------");
+    for(let i = 0; i < 7; i++) {
+      console.log(`Tile ${i}: rss is ${RSS_ENUM[obj[i].rss]}, roll is ${obj[i].roll}`);
+    }
+    console.log("------------------------------------");
   };
 
   playerInteract.getSeed = () => {

@@ -2,13 +2,19 @@
 
 //#region Player Definitions
 
+const TILE_SIDES = 6;
 const MAP_SIZE = 7;
 const Player =
 {
   ...hasRandom,
   informTimeout: Fun([], Null),
-  seeMap: Fun([Array(Object({ rss: UInt, roll: UInt }), MAP_SIZE)], Null),
+  seeMap: Fun([Array(Object({ 
+    rss: UInt, 
+    roll: UInt,
+  }), MAP_SIZE)], Null),
   getSeed: Fun([], UInt),
+  placeBuilding: Fun([], Object({ tile: UInt, side: UInt })),
+  placeBuildingCallback: Fun([Bool], Null),
 };
 const Alice = {
   ...Player,
@@ -24,8 +30,9 @@ const Bob = {
 
 //#region Enums
 
-const RSS_ENUM_SIZE = 5;
-const [isResource, POTATO, ORE, WOOD, BRICK, COAL] = makeEnum(RSS_ENUM_SIZE);
+const RSS_ENUM_SIZE = 4;
+const [isResource, POTATO, ORE, WOOD, BRICK] = makeEnum(RSS_ENUM_SIZE);
+const [isPlayer, pNONE, pALICE, pBOB, pCARL] = makeEnum(4);
 
 //#endregion
 
@@ -114,17 +121,55 @@ export const main = Reach.App(
     // decides the world
     // didnt want to make algorithm for good random world bc im lazy so you get this
     each([A, B, C], () => {
+      function noOwner() { 
+        return array(UInt, [pNONE, pNONE, pNONE, pNONE, pNONE, pNONE]); 
+      }
+
       const map = array(Object({ rss: UInt, roll: UInt }), [
-        { rss: seed + 6 % RSS_ENUM_SIZE, roll: seed + 9 % 8 },
+        { rss: (seed + 6) % RSS_ENUM_SIZE, roll: (seed + 9) % 8 },
         { rss: seed % RSS_ENUM_SIZE, roll: seed % 8 },
-        { rss: seed + 18 % RSS_ENUM_SIZE, roll: seed + 21 % 8 },
-        { rss: seed + 3 % RSS_ENUM_SIZE, roll: seed + 6 % 8 },
-        { rss: seed + 15 % RSS_ENUM_SIZE, roll: seed + 18 % 8 },
-        { rss: seed + 12 % RSS_ENUM_SIZE, roll: seed + 15 % 8 },
-        { rss: seed + 9 % RSS_ENUM_SIZE, roll: seed + 12  % 8 },
+        { rss: (seed + 18) % RSS_ENUM_SIZE, roll: (seed + 21) % 8 },
+        { rss: (seed + 3) % RSS_ENUM_SIZE, roll: (seed + 6) % 8 },
+        { rss: (seed + 15) % RSS_ENUM_SIZE, roll: (seed + 18) % 8 },
+        { rss: (seed + 12) % RSS_ENUM_SIZE, roll: (seed + 15) % 8 },
+        { rss: (seed + 9) % RSS_ENUM_SIZE, roll: (seed + 12)  % 8 },
       ]);
-      interact.seeMap(map);
     });
+
+    //#endregion
+
+    // ------ GAMEPLAY BEGINS HERE ------
+
+    //#region Reusable Functions
+    
+    function everyoneRefreshMap() {
+      each([A, B, C], () => {
+        interact.seeMap(map);
+      });
+    }
+
+    //#endregion
+
+    //#region Resources + Actions
+
+    // show everyone the map before any interactions start
+    everyoneRefreshMap();
+
+    A.only(() => {
+      const _aInput = interact.placeBuilding();
+
+      if(isPlayer(_aInput.tile) && _aInput.side < TILE_SIDES) {          
+          const dog = array(UInt, [3, 3, 3]);
+          const newDog = dog.set(1, 2);
+
+          //map[_aInput.tile].owners.set(_aInput.side, pALICE);
+          interact.placeBuildingCallback(true);
+      } else {
+        interact.placeBuildingCallback(false);
+      }
+    });
+
+    everyoneRefreshMap();
 
     //#endregion
 
