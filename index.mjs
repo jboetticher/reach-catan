@@ -50,11 +50,15 @@ const _ENUM = [
   };
 
   playerInteract.seeMap = (obj) => {
+<<<<<<< HEAD
     console.log("------------------------------------");
     for(let i = 0; i < 7; i++) {
       console.log(`Tile ${i}: rss is ${RSS_ENUM[obj[i].rss]}, roll is ${obj[i].roll}`);
     }
     console.log("------------------------------------");
+=======
+    console.log(obj);;
+>>>>>>> c126cb6730be7a7d9bcca47427d426212e51c7ad
   };
 
   playerInteract.getSeed = () => {
