@@ -147,7 +147,7 @@ export const main = Reach.App(
         interact.seeMap(map);
       });
     }
-
+    
     //#endregion
 
     //#region Resources + Actions
@@ -162,7 +162,6 @@ export const main = Reach.App(
           const dog = array(UInt, [3, 3, 3]);
           const newDog = dog.set(1, 2);
 
-          //map[_aInput.tile].owners.set(_aInput.side, pALICE);
           interact.placeBuildingCallback(true);
       } else {
         interact.placeBuildingCallback(false);
