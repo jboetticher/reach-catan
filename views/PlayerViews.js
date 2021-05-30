@@ -1,4 +1,5 @@
 import React from 'react';
+import TileMap from '../components/TileMap';
 
 const exports = {};
 
@@ -63,16 +64,18 @@ exports.Timeout = class extends React.Component {
   }
 }
 
+
 exports.MapDisplay = class extends React.Component {  
   render() {
-    console.log(this.props);  
+    // creates a list of tiles to add
+    const tiles = this.props.tiles;
+
     return(
       <div>
         <h1>Map Display</h1>
         <div>
-          This is the first resource:
+          <TileMap tileSize={100} tileData={tiles} />
         </div>
-
       </div>
     );
     /*

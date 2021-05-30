@@ -118,7 +118,6 @@ class Deployer extends Player {
   }
 
   render() { 
-    console.log("Deployer Views: ", DeployerViews);
     return renderView(this, DeployerViews); 
   }
 }
