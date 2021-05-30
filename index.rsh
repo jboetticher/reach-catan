@@ -8,8 +8,8 @@ const Player =
 {
   ...hasRandom,
   informTimeout: Fun([], Null),
-  seeMap: Fun([Array(Object({ 
-    rss: UInt, 
+  seeMap: Fun([Array(Object({
+    rss: UInt,
     roll: UInt,
   }), MAP_SIZE)], Null),
   getSeed: Fun([], UInt),
@@ -39,7 +39,7 @@ const [isPlayer, pNONE, pALICE, pBOB, pCARL] = makeEnum(4);
 export const main = Reach.App(
   {}, [Participant('Alice', Alice), Participant('Bob', Bob), Participant('Carl', Bob)], (A, B, C) => {
 
-    //#region STEP: Alice Presents Wager
+    //#region Alice Presents Wager
 
     // shows alice's wager
     A.only(() => {
@@ -52,7 +52,7 @@ export const main = Reach.App(
 
     //#endregion
 
-    //#region STEPS: Bob + Carl Accept Wager
+    //#region Bob + Carl Accept Wager
 
     B.only(() => {
       interact.acceptWager(wager);
@@ -113,62 +113,89 @@ export const main = Reach.App(
     });
     B.publish(saltB, seedB);
     checkCommitment(commitB, saltB, seedB);
-    commit();
 
     // seed is calculated from the (hopefully random) input of each player
     const seed = seedA + seedB + seedC;
 
     // decides the world
-    // didnt want to make algorithm for good random world bc im lazy so you get this
-    each([A, B, C], () => {
-      function noOwner() { 
-        return array(UInt, [pNONE, pNONE, pNONE, pNONE, pNONE, pNONE]); 
-      }
-
-      const map = array(Object({ rss: UInt, roll: UInt }), [
-        { rss: (seed + 6) % RSS_ENUM_SIZE, roll: (seed + 9) % 8 },
-        { rss: seed % RSS_ENUM_SIZE, roll: seed % 8 },
-        { rss: (seed + 18) % RSS_ENUM_SIZE, roll: (seed + 21) % 8 },
-        { rss: (seed + 3) % RSS_ENUM_SIZE, roll: (seed + 6) % 8 },
-        { rss: (seed + 15) % RSS_ENUM_SIZE, roll: (seed + 18) % 8 },
-        { rss: (seed + 12) % RSS_ENUM_SIZE, roll: (seed + 15) % 8 },
-        { rss: (seed + 9) % RSS_ENUM_SIZE, roll: (seed + 12)  % 8 },
-      ]);
-    });
+    // didnt want to make algorithm for good random world bc im lazy so instead you get this
+    const map = array(Object({ rss: UInt, roll: UInt }), [
+      { rss: (seed + 6) % RSS_ENUM_SIZE, roll: (seed + 9) % 8 },
+      { rss: seed % RSS_ENUM_SIZE, roll: seed % 8 },
+      { rss: (seed + 18) % RSS_ENUM_SIZE, roll: (seed + 21) % 8 },
+      { rss: (seed + 3) % RSS_ENUM_SIZE, roll: (seed + 6) % 8 },
+      { rss: (seed + 15) % RSS_ENUM_SIZE, roll: (seed + 18) % 8 },
+      { rss: (seed + 12) % RSS_ENUM_SIZE, roll: (seed + 15) % 8 },
+      { rss: (seed + 9) % RSS_ENUM_SIZE, roll: (seed + 12) % 8 },
+    ]);
 
     //#endregion
 
     // ------ GAMEPLAY BEGINS HERE ------
 
     //#region Reusable Functions
-    
-    function everyoneRefreshMap() {
-      each([A, B, C], () => {
-        interact.seeMap(map);
-      });
+
+    function createStarterResourceArray() {
+      return array(UInt, [2, 2, 2, 2]);
     }
-    
+
     //#endregion
 
     //#region Resources + Actions
 
     // show everyone the map before any interactions start
-    everyoneRefreshMap();
+    each([A, B, C], () => {
+      interact.seeMap(map);
+    });
 
+    //var playerResources = array(Array[UInt, RSS_ENUM_SIZE], [array(UInt, [1, 1, 1, 1])]);
+    var gameState = {
+      winner: pNONE,
+      // stores the resources of each player.
+      // 0 - Alice, 1 - Bob, 2 - Carl
+      playerResources: array(Array(UInt, RSS_ENUM_SIZE), [
+        createStarterResourceArray(),
+        createStarterResourceArray(),
+        createStarterResourceArray(),
+      ]),
+      //buildings
+      // not implemented yet so whoops
+    };
+    invariant(
+      isPlayer(gameState.winner) &&
+      gameState.playerResources.length == 3 &&
+      balance() == wager * 3
+    );
+    while (gameState.winner == pNONE) {
+      commit();
+      A.only(() => {
+        const test = "test";
+      });
+      A.publish(test);
+
+      gameState = {
+        winner: pALICE,
+        playerResources: gameState.playerResources
+      };
+
+      continue;
+    }
+    commit();
+
+    /* this was just test code basically
     A.only(() => {
       const _aInput = interact.placeBuilding();
 
-      if(isPlayer(_aInput.tile) && _aInput.side < TILE_SIDES) {          
-          const dog = array(UInt, [3, 3, 3]);
-          const newDog = dog.set(1, 2);
+      if (isPlayer(_aInput.tile) && _aInput.side < TILE_SIDES) {
+        const dog = array(UInt, [3, 3, 3]);
+        const newDog = dog.set(1, 2);
 
-          interact.placeBuildingCallback(true);
+        interact.placeBuildingCallback(true);
       } else {
         interact.placeBuildingCallback(false);
       }
     });
-
-    everyoneRefreshMap();
+    */
 
     //#endregion
 
@@ -178,7 +205,10 @@ export const main = Reach.App(
     });
     A.publish(Apotatoes);
 
-    transfer(wager * 3).to(A);
+    transfer(wager * 3).to(
+      gameState.winner == pALICE ? A :
+      gameState.winner == pBOB ? B : C
+    );
     commit();
     exit();
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import Polygon from 'react-polygon';
+import Polygon from './Polygon';
 
 // potato, ore, wood, brick
 const RSS_COLORS = {
@@ -30,7 +30,14 @@ class Tile extends React.Component {
 
     return (
       <div style={divSpacer}>
-        <Polygon n={6} size={tileSize} fill={RSS_COLORS[resource]} />
+        <Polygon 
+          n={6} 
+          size={tileSize} 
+          fill={RSS_COLORS[resource]} 
+          onClick={() => {
+            console.log("THIS TILE WAS CLICKED");
+          }}
+        />
       </div>
     );
   }

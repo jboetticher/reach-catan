@@ -1,4 +1,5 @@
 import React from 'react';
+import TileMap from '../components/TileMap';
 
 const exports = {};
 
@@ -9,6 +10,7 @@ exports.Wrapper = class extends React.Component {
       <div className="App">
         <header className="App-header" id="root">
           <h1>Not Settlers of Catan</h1>
+          <TileMap />
           {content}
         </header>
       </div>
