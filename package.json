@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "prop-types": "^15.6.2"
+    "prop-types": "^15.6.2",
+    "react-loading": "^2.0.3"
   }
 }

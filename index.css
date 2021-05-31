@@ -16,7 +16,7 @@ code {
 }
 
 .App-header {
-  background-color: rgb(210, 164, 224);
+  background-color: rgb(116, 188, 230);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -37,7 +37,7 @@ h2 {
 }
 
 .App-link {
-  color: #61dafb;
+  color: #617dfb;
 }
 
 input[type=number] {
@@ -51,6 +51,20 @@ button {
 
 textarea {
   font-size: calc(10px + 2vmin);
+}
+
+.spinloader {
+  margin: auto;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.devData {
+  position: fixed;
+  left: 0px;
+  bottom: 0px;
+  padding: 8px;
+  margin: 0px;
 }
 
 .ContractInfo {

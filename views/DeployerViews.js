@@ -1,5 +1,6 @@
 import React from 'react';
 import PlayerViews from './PlayerViews';
+import ReactLoading from 'react-loading';
 
 const exports = {...PlayerViews};
 
@@ -10,7 +11,10 @@ exports.Wrapper = class extends React.Component {
     const {content} = this.props;
     return (
       <div className="Deployer">
-        <h2>Deployer (Alice)</h2>
+        <div className={"devData"}>
+          <p>Deployer (Alice)</p>
+          {this.props.devOutput != null ? this.props.devOutput != null : null}
+        </div>
         {content}
       </div>
     );
@@ -55,7 +59,10 @@ exports.Deploy = class extends React.Component {
 exports.Deploying = class extends React.Component {
   render() {
     return (
-      <div>Deploying... please wait.</div>
+      <>
+        <div>Deploying the game... please wait.</div>
+        <ReactLoading type='spin' height='20%' width='20%' className='spinloader' />
+      </>
     );
   }
 }
@@ -76,7 +83,8 @@ exports.WaitingForAttacher = class extends React.Component {
     const {ctcInfoStr} = this.props;
     return (
       <div>
-        Waiting for Attacher to join...
+        <p>Waiting for other players to join...</p>
+        <ReactLoading type='spin' height='20%' width='20%' className='spinloader' />
         <br /> Please give them this contract info:
         <pre className='ContractInfo'>
           {ctcInfoStr}

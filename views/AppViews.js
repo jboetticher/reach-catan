@@ -9,8 +9,6 @@ exports.Wrapper = class extends React.Component {
     return (
       <div className="App">
         <header className="App-header" id="root">
-          <h1>Not Settlers of Catan</h1>
-          <TileMap />
           {content}
         </header>
       </div>
@@ -60,7 +58,12 @@ exports.DeployerOrAttacher = class extends React.Component {
     const { parent } = this.props;
     return (
       <div>
-        Please select a role:
+        <h1>
+          Settlers of Reach
+        </h1>
+        <p>
+          Please select a role:
+        </p>
         <br />
         <p>
           <button

@@ -1,14 +1,18 @@
 import React from 'react';
 import PlayerViews from './PlayerViews';
+import ReactLoading from 'react-loading';
 
-const exports = {...PlayerViews};
+const exports = { ...PlayerViews };
 
 exports.Wrapper = class extends React.Component {
   render() {
-    const {content} = this.props;
+    const { content } = this.props;
     return (
       <div className="Attacher">
-        <h2>Attacher (Bob or Carl)</h2>
+        <div className={"devData"}>
+          <p>Attacher (Bob or Carl)</p>
+          {this.props.devOutput}
+        </div>
         {content}
       </div>
     );
@@ -17,15 +21,15 @@ exports.Wrapper = class extends React.Component {
 
 exports.Attach = class extends React.Component {
   render() {
-    const {parent} = this.props;
-    const {ctcInfoStr} = this.state || {};
+    const { parent } = this.props;
+    const { ctcInfoStr } = this.state || {};
     return (
       <div>
         Please paste the contract info to attach to:
         <br />
         <textarea spellcheck="false"
           className='ContractInfo'
-          onChange={(e) => this.setState({ctcInfoStr: e.currentTarget.value})}
+          onChange={(e) => this.setState({ ctcInfoStr: e.currentTarget.value })}
           placeholder='{}'
         />
         <br />
@@ -41,17 +45,20 @@ exports.Attach = class extends React.Component {
 exports.Attaching = class extends React.Component {
   render() {
     return (
-      <div>
-        Attaching, please wait...
-      </div>
+      <>
+        <div>
+          Attaching to the game contract, please wait...
+        </div>
+        <ReactLoading type='spin' height='20%' width='20%' className='spinloader' />
+      </>
     );
   }
 }
 
 exports.AcceptTerms = class extends React.Component {
   render() {
-    const {wager, standardUnit, parent} = this.props;
-    const {disabled} = this.state || {};
+    const { wager, standardUnit, parent } = this.props;
+    const { disabled } = this.state || {};
     return (
       <div>
         The terms of the game are:
@@ -60,7 +67,7 @@ exports.AcceptTerms = class extends React.Component {
         <button
           disabled={disabled}
           onClick={() => {
-            this.setState({disabled: true});
+            this.setState({ disabled: true });
             parent.termsAccepted();
           }}
         >Accept terms and pay wager</button>
@@ -73,8 +80,9 @@ exports.WaitingForTurn = class extends React.Component {
   render() {
     return (
       <div>
-        Waiting for the other player...
-        <br />Think about which move you want to play.
+        <p>Waiting for the other player...</p>
+        <ReactLoading type='spin' height='20%' width='20%' className='spinloader' />
+        <p>Think about which move you want to play.</p>
       </div>
     );
   }

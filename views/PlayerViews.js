@@ -1,5 +1,6 @@
 import React from 'react';
 import TileMap from '../components/TileMap';
+import ReactLoading from 'react-loading';
 
 const exports = {};
 
@@ -8,7 +9,7 @@ const exports = {};
 
 exports.GetHand = class extends React.Component {
   render() {
-    const {parent, playable, hand} = this.props;
+    const { parent, playable, hand } = this.props;
     return (
       <div>
         {hand ? 'It was a draw! Pick again.' : ''}
@@ -44,7 +45,7 @@ exports.WaitingForResults = class extends React.Component {
 
 exports.Done = class extends React.Component {
   render() {
-    const {outcome} = this.props;
+    const { outcome } = this.props;
     return (
       <div>
         Thank you for playing. The outcome of this game was:
@@ -64,13 +65,27 @@ exports.Timeout = class extends React.Component {
   }
 }
 
+exports.Generating = class extends React.Component {
+  render() {
+    return (
+      <div>
+        <h3>Please wait...</h3>
+        <ReactLoading type='spin' height='20%' width='20%' className='spinloader' />
+        <p>
+          The contract is generating the world.
+          Please accept any new transactions to continue the process.
+      </p>
+      </div>
+    );
+  }
+}
 
-exports.MapDisplay = class extends React.Component {  
+exports.MapDisplay = class extends React.Component {
   render() {
     // creates a list of tiles to add
     const tiles = this.props.tiles;
 
-    return(
+    return (
       <div>
         <h1>Map Display</h1>
         <div>
