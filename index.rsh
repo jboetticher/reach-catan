@@ -1,5 +1,14 @@
 'reach 0.1';
 
+//#region Enums
+
+const RSS_ENUM_SIZE = 4;
+const PLAYER_COUNT = 3;
+const [isResource, WHEAT, ORE, WOOD, BRICK] = makeEnum(RSS_ENUM_SIZE);
+const [isPlayer, pNONE, pALICE, pBOB, pCARL] = makeEnum(4);
+
+//#endregion
+
 //#region Player Definitions
 
 const TILE_SIDES = 6;
@@ -8,11 +17,12 @@ const Player =
 {
   ...hasRandom,
   informTimeout: Fun([], Null),
+  getSeed: Fun([], UInt),
   seeMap: Fun([Array(Object({
     rss: UInt,
     roll: UInt,
   }), MAP_SIZE)], Null),
-  getSeed: Fun([], UInt),
+  seeRss: Fun([Array(Array(UInt, RSS_ENUM_SIZE), PLAYER_COUNT)], Null),
   placeBuilding: Fun([], Object({ tile: UInt, side: UInt })),
   placeBuildingCallback: Fun([Bool], Null),
 };
@@ -25,14 +35,6 @@ const Bob = {
   ...Player,
   acceptWager: Fun([UInt], Null)
 };
-
-//#endregion
-
-//#region Enums
-
-const RSS_ENUM_SIZE = 4;
-const [isResource, POTATO, ORE, WOOD, BRICK] = makeEnum(RSS_ENUM_SIZE);
-const [isPlayer, pNONE, pALICE, pBOB, pCARL] = makeEnum(4);
 
 //#endregion
 
@@ -133,14 +135,6 @@ export const main = Reach.App(
 
     // ------ GAMEPLAY BEGINS HERE ------
 
-    //#region Reusable Functions
-
-    function createStarterResourceArray() {
-      return array(UInt, [2, 2, 2, 2]);
-    }
-
-    //#endregion
-
     //#region Resources + Actions
 
     // show everyone the map before any interactions start
@@ -148,7 +142,10 @@ export const main = Reach.App(
       interact.seeMap(map);
     });
 
-    //var playerResources = array(Array[UInt, RSS_ENUM_SIZE], [array(UInt, [1, 1, 1, 1])]);
+    function createStarterResourceArray() {
+      return array(UInt, [2, 2, 2, 2]);
+    }
+
     var gameState = {
       winner: pNONE,
       // stores the resources of each player.
@@ -161,12 +158,17 @@ export const main = Reach.App(
       //buildings
       // not implemented yet so whoops
     };
+
     invariant(
       isPlayer(gameState.winner) &&
-      gameState.playerResources.length == 3 &&
-      balance() == wager * 3
+      gameState.playerResources.length == PLAYER_COUNT &&
+      balance() == wager * PLAYER_COUNT
     );
     while (gameState.winner == pNONE) {
+      each([A, B, C], () => {
+        interact.seeRss(gameState.playerResources);
+      });
+      
       commit();
       A.only(() => {
         const test = "test";
@@ -182,21 +184,6 @@ export const main = Reach.App(
     }
     commit();
 
-    /* this was just test code basically
-    A.only(() => {
-      const _aInput = interact.placeBuilding();
-
-      if (isPlayer(_aInput.tile) && _aInput.side < TILE_SIDES) {
-        const dog = array(UInt, [3, 3, 3]);
-        const newDog = dog.set(1, 2);
-
-        interact.placeBuildingCallback(true);
-      } else {
-        interact.placeBuildingCallback(false);
-      }
-    });
-    */
-
     //#endregion
 
     // alice always wins in this scenario (pending actual logic)
@@ -205,7 +192,7 @@ export const main = Reach.App(
     });
     A.publish(Apotatoes);
 
-    transfer(wager * 3).to(
+    transfer(wager * PLAYER_COUNT).to(
       gameState.winner == pALICE ? A :
       gameState.winner == pBOB ? B : C
     );

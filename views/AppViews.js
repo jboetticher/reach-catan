@@ -1,5 +1,5 @@
 import React from 'react';
-import TileMap from '../components/TileMap';
+import { PlayerResourcesPanel } from '../components/PlayerResources';
 
 const exports = {};
 
@@ -58,6 +58,7 @@ exports.DeployerOrAttacher = class extends React.Component {
     const { parent } = this.props;
     return (
       <div>
+        <PlayerResourcesPanel />
         <h1>
           Settlers of Reach
         </h1>

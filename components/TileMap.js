@@ -1,13 +1,9 @@
 import React from 'react';
 import Polygon from './Polygon';
+import Enums from '../Enums.json';
 
 // potato, ore, wood, brick
-const RSS_COLORS = {
-  0: "#f0ab3d",
-  1: "#272b23",
-  2: "#a15a10",
-  3: "#b72e2e"
-}
+const RSS_COLORS = Enums.RESOURCE_COLORS;
 const MAP_SIZE = 7;
 
 /**

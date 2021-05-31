@@ -67,6 +67,21 @@ textarea {
   margin: 0px;
 }
 
+.topRight {
+  position: fixed;
+  right: 0px;
+  top: 0px;
+  padding: 8px;
+}
+
+.mediumText {
+  font-size: medium;
+}
+
+.d-flex {
+  display: flex;
+}
+
 .ContractInfo {
   font-size: calc(10px + 1vmin);
   text-align: left;

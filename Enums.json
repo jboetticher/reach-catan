@@ -1,0 +1,19 @@
+{
+  "PLAYER_COLORS": [
+    "#5200ff",
+    "#ff0000",
+    "#00ff0a"
+  ],
+  "RESOUCE_NAMES": [
+    "Wheat",
+    "Ore",
+    "Wood",
+    "Brick"
+  ],
+  "RESOURCE_COLORS": [
+    "#f0ab3d",
+    "#272b23",
+    "#a15a10",
+    "#b72e2e"
+  ]
+}
