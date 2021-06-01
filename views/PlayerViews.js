@@ -1,5 +1,6 @@
 import React from 'react';
 import TileMap from '../components/TileMap';
+import { PlayerResourcesPanel } from '../components/PlayerResources';
 import ReactLoading from 'react-loading';
 
 const exports = {};
@@ -84,10 +85,12 @@ exports.MapDisplay = class extends React.Component {
   render() {
     // creates a list of tiles to add
     const tiles = this.props.tiles;
+    const resources = this.props.resources;
 
     return (
       <div>
         <h1>Map Display</h1>
+        <PlayerResourcesPanel resources={resources} />
         <div>
           <TileMap tileSize={100} tileData={tiles} />
         </div>

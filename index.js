@@ -57,15 +57,30 @@ class Player extends React.Component {
     console.log("Timeout is being informed.");
     this.setState({ view: 'Timeout' });
   }
-  seeMap(tileArray) {
-    console.log("Map data is being sent.", tileArray);
-    this.setState({ view: 'MapDisplay', tiles: tileArray });
-  }
   getSeed() {
     let seed = Math.floor(Math.random() * (10000000));
     this.setState({ view: 'Generating' });
     console.log("Seed is being requested.", seed);
     return seed;
+  }
+  seeMap(tileArray) {
+    console.log("Map data is being sent.", tileArray);
+    this.setState({ 
+      view: 'MapDisplay', 
+      tiles: tileArray, 
+      resources: [[
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+      ]] 
+    });
+  }
+  seeGameState(data) {
+    console.log("Game state data is being sent.", resources);
+    this.setState({
+      resources: data.resources,
+      roll: data.roll
+    })
   }
   placeBuilding() {
     let building = {

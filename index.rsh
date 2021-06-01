@@ -22,7 +22,11 @@ const Player =
     rss: UInt,
     roll: UInt,
   }), MAP_SIZE)], Null),
-  seeRss: Fun([Array(Array(UInt, RSS_ENUM_SIZE), PLAYER_COUNT)], Null),
+  seeGameState: Fun([Object({
+    winner: UInt,
+    roll: UInt,
+    resources: Array(Array(UInt, RSS_ENUM_SIZE), PLAYER_COUNT)
+  })], Null),
   placeBuilding: Fun([], Object({ tile: UInt, side: UInt })),
   placeBuildingCallback: Fun([Bool], Null),
 };
@@ -150,35 +154,77 @@ export const main = Reach.App(
       winner: pNONE,
       // stores the resources of each player.
       // 0 - Alice, 1 - Bob, 2 - Carl
-      playerResources: array(Array(UInt, RSS_ENUM_SIZE), [
+      resources: array(Array(UInt, RSS_ENUM_SIZE), [
         createStarterResourceArray(),
         createStarterResourceArray(),
         createStarterResourceArray(),
       ]),
+      // stores the roll so that the frontend can be responsive
+      roll: 4,
       //buildings
       // not implemented yet so whoops
     };
 
     invariant(
       isPlayer(gameState.winner) &&
-      gameState.playerResources.length == PLAYER_COUNT &&
+      gameState.resources.length == PLAYER_COUNT &&
+      gameState.roll >= 4 && gameState.roll <= 12 &&
       balance() == wager * PLAYER_COUNT
     );
+
     while (gameState.winner == pNONE) {
-      each([A, B, C], () => {
-        interact.seeRss(gameState.playerResources);
-      });
-      
+
+      // sends the resource data to the frontend
+      function letPlayersSeeGameState(localGameState) {
+        each([A, B, C], () => {
+          interact.seeGameState(localGameState);
+        });
+      }
+
+      // rolls the dice and gives players the correct amount of resources
+      function rollDiceAndGiveResources(localGameState) {
+        // we're being lazy here so we don't get an actual roll
+        const localRoll = 7;
+
+        return {
+          winner: localGameState.winner,
+          roll: localRoll,
+          resources: localGameState.resources.set(0, array(UInt, [
+            localGameState.resources[0][0] + 1,
+            localGameState.resources[0][1] + 1,
+            localGameState.resources[0][2] + 1,
+            localGameState.resources[0][3] + 1
+          ]))
+        };
+      }
+
+      // roll the dice and give everyone resources
+      // for now it's just give everyone free stuff because i don't want to do the roll
+      const gameState1 = rollDiceAndGiveResources(gameState);
+      letPlayersSeeGameState(gameState1);
+
+      // let alice build a building if they can
+      // lmao lets not do that yet
+
+      // let alice make trades if they want
+      // lmao lets not do that yet
+
+      // let whoever gets the trade accept or not accept the deal
+      // lmao lets not do that yet
+
+
+
+      // repeat the last four steps with bob
+
+      // repeat again with carl
+
+      // check to see if anyone is a winner
       commit();
       A.only(() => {
         const test = "test";
       });
       A.publish(test);
-
-      gameState = {
-        winner: pALICE,
-        playerResources: gameState.playerResources
-      };
+      gameState = gameState1;
 
       continue;
     }
@@ -194,7 +240,7 @@ export const main = Reach.App(
 
     transfer(wager * PLAYER_COUNT).to(
       gameState.winner == pALICE ? A :
-      gameState.winner == pBOB ? B : C
+        gameState.winner == pBOB ? B : C
     );
     commit();
     exit();
