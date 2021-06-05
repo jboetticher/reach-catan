@@ -65,22 +65,23 @@ class Player extends React.Component {
   }
   seeMap(tileArray) {
     console.log("Map data is being sent.", tileArray);
-    this.setState({ 
-      view: 'MapDisplay', 
-      tiles: tileArray, 
-      resources: [[
+    this.setState({
+      view: 'MapDisplay',
+      tiles: tileArray,
+      resources: [
         [0, 0, 0, 0],
         [0, 0, 0, 0],
         [0, 0, 0, 0]
-      ]] 
+      ]
     });
   }
   seeGameState(data) {
-    console.log("Game state data is being sent.", resources);
+    console.log("Game state data is being sent.", data);
     this.setState({
-      resources: data.resources,
-      roll: data.roll
-    })
+      resources: data['resources'],
+      roll: data['roll'],
+      //winner: data['winner']
+    });
   }
   placeBuilding() {
     let building = {

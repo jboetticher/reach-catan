@@ -86,11 +86,12 @@ exports.MapDisplay = class extends React.Component {
     // creates a list of tiles to add
     const tiles = this.props.tiles;
     const resources = this.props.resources;
+    const roll = this.props.roll;
 
     return (
       <div>
         <h1>Map Display</h1>
-        <PlayerResourcesPanel resources={resources} />
+        <PlayerResourcesPanel resources={resources} roll={roll ?? 0} />
         <div>
           <TileMap tileSize={100} tileData={tiles} />
         </div>
