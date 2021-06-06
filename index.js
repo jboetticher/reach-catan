@@ -39,8 +39,8 @@ class App extends React.Component {
     this.setState({ view: 'DeployerOrAttacher' });
   }
   async skipFundAccount() { this.setState({ view: 'DeployerOrAttacher' }); }
-  selectDeployer() { this.setState({ view: 'Wrapper', ContentView: Deployer }); }
-  selectAttacher() { this.setState({ view: 'Wrapper', ContentView: Attacher }); }
+  selectDeployer() { this.setState({ view: 'Wrapper', ContentView: DeployerAlice }); }
+  selectAttacher() { this.setState({ view: 'Wrapper', ContentView: AttacherBob }); }
   selectAttacherTwo() { this.setState({ view: 'Wrapper', ContentView: AttacherCarl }); }
   render() { return renderView(this, AppViews); }
 }
@@ -80,7 +80,9 @@ class Player extends React.Component {
     this.setState({
       resources: data['resources'],
       roll: data['roll'],
-      //winner: data['winner']
+      winner: data['winner'],
+      phase: data['phase'],
+      turn: data['turn'] - 1, // in the frontend, alice = 0, not 1
     });
   }
   placeBuilding() {
@@ -107,10 +109,10 @@ class Player extends React.Component {
   }
 }
 
-class Deployer extends Player {
+class DeployerAlice extends Player {
   constructor(props) {
     super(props);
-    this.state = { view: 'SetWager', playerName: "Alice" };
+    this.state = { view: 'SetWager', playerNum: 2 };
   }
 
   // the deployment of the backend & start of the instance
@@ -139,10 +141,10 @@ class Deployer extends Player {
   }
 }
 
-class Attacher extends Player {
+class AttacherBob extends Player {
   constructor(props) {
     super(props);
-    this.state = { view: 'Attach' };
+    this.state = { view: 'Attach', playerNum: 1 };
   }
 
   // attaching to the specified backend
@@ -173,10 +175,10 @@ class Attacher extends Player {
   render() { return renderView(this, AttacherViews); }
 }
 
-class AttacherCarl extends Attacher {
+class AttacherCarl extends AttacherBob {
   constructor(props) {
     super(props);
-    this.state = { view: 'Attach' };
+    this.state = { view: 'Attach', playerNum: 2 };
   }
 
   // attaching to the specified backend

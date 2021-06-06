@@ -1,6 +1,7 @@
 import React from 'react';
 import PlayerViews from './PlayerViews';
 import ReactLoading from 'react-loading';
+import Enums from '../Enums.json';
 
 const exports = { ...PlayerViews };
 
@@ -10,7 +11,7 @@ exports.Wrapper = class extends React.Component {
     return (
       <div className="Attacher">
         <div className={"devData"}>
-          <p>Attacher (Bob or Carl)</p>
+          <p>Attacher ({Enums.PLAYER_NAMES[this.props.playerNum]})</p>
           {this.props.devOutput}
         </div>
         {content}

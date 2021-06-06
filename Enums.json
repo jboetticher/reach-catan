@@ -4,6 +4,11 @@
     "#ff0000",
     "#00ff0a"
   ],
+  "PLAYER_NAMES": [
+    "Player 1",
+    "Player 2",
+    "Player 3"
+  ],
   "RESOUCE_NAMES": [
     "Wheat",
     "Ore",
@@ -15,5 +20,15 @@
     "#272b23",
     "#a15a10",
     "#b72e2e"
+  ],
+  "GAME_PHASES": [
+    "Dice Roll",
+    "Building",
+    "Trade"
+  ],
+  "PHASE_DESCRIPTIONS": [
+    "A die is being cast. For each tile of the resulting number, the owners of buildings on that tile will recieve corresponding resources.",
+    "The current player will have the option to construct 1 building on a tile for 1 ore, 1 wood, and 1 brick.",
+    "The current player will have the option to propose a resource trade deal to a player."
   ]
 }

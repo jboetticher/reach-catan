@@ -1,4 +1,6 @@
 import React from 'react';
+import TileMap from '../components/TileMap';
+import GameInfo from '../components/GameInfo';
 
 const exports = {};
 

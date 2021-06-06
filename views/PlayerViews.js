@@ -1,5 +1,6 @@
 import React from 'react';
 import TileMap from '../components/TileMap';
+import GameInfo from '../components/GameInfo';
 import { PlayerResourcesPanel } from '../components/PlayerResources';
 import ReactLoading from 'react-loading';
 
@@ -87,21 +88,19 @@ exports.MapDisplay = class extends React.Component {
     const tiles = this.props.tiles;
     const resources = this.props.resources;
     const roll = this.props.roll;
+    const phase = this.props.phase;
+    const turn = this.props.turn;
 
     return (
       <div>
         <h1>Map Display</h1>
         <PlayerResourcesPanel resources={resources} roll={roll ?? 0} />
+        <GameInfo phase={phase} turn={turn} />
         <div>
           <TileMap tileSize={100} tileData={tiles} />
         </div>
       </div>
     );
-    /*
-      <div>
-        {this.props?.tiles[0].rss}
-      </div>
-    */
   }
 }
 

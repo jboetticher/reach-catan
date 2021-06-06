@@ -4,14 +4,15 @@
 
 const RSS_ENUM_SIZE = 4;
 const PLAYER_COUNT = 3;
+const MAXIMUM_BUILDINGS_ON_TILE = 3;
 const [isResource, WHEAT, ORE, WOOD, BRICK] = makeEnum(RSS_ENUM_SIZE);
 const [isPlayer, pNONE, pALICE, pBOB, pCARL] = makeEnum(4);
+const [isGamePhase, RESOUCE_GEN, BUILDING, TRADE] = makeEnum(3);
 
 //#endregion
 
 //#region Player Definitions
 
-const TILE_SIDES = 6;
 const MAP_SIZE = 7;
 const Player =
 {
@@ -25,9 +26,13 @@ const Player =
   seeGameState: Fun([Object({
     winner: UInt,
     roll: UInt,
-    resources: Array(Array(UInt, RSS_ENUM_SIZE), PLAYER_COUNT)
+    round: UInt,
+    turn: UInt,
+    phase: UInt,
+    resources: Array(Array(UInt, RSS_ENUM_SIZE), PLAYER_COUNT),
+    buildings: Array(Array(UInt, MAXIMUM_BUILDINGS_ON_TILE), MAP_SIZE)
   })], Null),
-  placeBuilding: Fun([], Object({ tile: UInt, side: UInt })),
+  placeBuilding: Fun([], Object({ tile: UInt, skip: Bool })),
   placeBuildingCallback: Fun([Bool], Null),
 };
 const Alice = {
@@ -150,6 +155,10 @@ export const main = Reach.App(
       return array(UInt, [2, 2, 2, 2]);
     }
 
+    function createStarterBuildingArray() {
+      return array(UInt, [pNONE, pNONE, pNONE]);
+    }
+
     var gameState = {
       winner: pNONE,
       // stores the resources of each player.
@@ -159,20 +168,38 @@ export const main = Reach.App(
         createStarterResourceArray(),
         createStarterResourceArray(),
       ]),
+      // stores which round that the gameState is in
+      round: 0,
       // stores the roll so that the frontend can be responsive
       roll: 4,
+      // stores which player is supposed to be playing
+      turn: pALICE,
+      // stores the player's phase of the game
+      phase: RESOUCE_GEN,
       //buildings
-      // not implemented yet so whoops
+      buildings: array(Array(UInt, MAXIMUM_BUILDINGS_ON_TILE), [
+        createStarterBuildingArray(),
+        createStarterBuildingArray(),
+        createStarterBuildingArray(),
+        createStarterBuildingArray(),
+        createStarterBuildingArray(),
+        createStarterBuildingArray(),
+        createStarterBuildingArray(),
+      ])
     };
 
     invariant(
       isPlayer(gameState.winner) &&
       gameState.resources.length == PLAYER_COUNT &&
-      gameState.roll >= 4 && gameState.roll <= 12 &&
+      gameState.roll >= 2 && gameState.roll <= 12 &&
+      gameState.round >= 0 &&
+      isPlayer(gameState.turn) &&
+      isGamePhase(gameState.phase) &&
       balance() == wager * PLAYER_COUNT
     );
 
     while (gameState.winner == pNONE) {
+      commit();
 
       // sends the resource data to the frontend
       function letPlayersSeeGameState(localGameState) {
@@ -182,13 +209,25 @@ export const main = Reach.App(
       }
 
       // rolls the dice and gives players the correct amount of resources
-      function rollDiceAndGiveResources(localGameState) {
-        // we're being lazy here so we don't get an actual roll
-        const localRoll = 7;
+      function diceRollPhase(localGameState, player) {
+        /**
+         * We're being lazy here so this is all deterministic based off of the PUBLIC seed
+         * In other words, user front ends can predict future rolls.
+         * SOLUTIONS:
+         * 1. Make a new seed at the beginning but obfuscate it. Probably won't be safe after first roll.
+         * 2. Ask for a new random from each player each round (annoying and cost ineffective).
+         * 3. Base rolls calculation off of player interactions to make it different each time (players affect the roll by design).
+         */
+        const localRoll =
+          ((seedA + seedB) * gameState.round) % 6 + ((seedB + seedC) * gameState.round % 6) + 2;
 
         return {
           winner: localGameState.winner,
           roll: localRoll,
+          round: localGameState.round + 1,
+          turn: player,
+          phase: BUILDING, // transitions to the next phase, which is building
+          buildings: localGameState.buildings,
           resources: localGameState.resources.set(0, array(UInt, [
             localGameState.resources[0][0] + 1,
             localGameState.resources[0][1] + 1,
@@ -198,13 +237,59 @@ export const main = Reach.App(
         };
       }
 
-      // roll the dice and give everyone resources
-      // for now it's just give everyone free stuff because i don't want to do the roll
-      const gameState1 = rollDiceAndGiveResources(gameState);
+      // returns the game state when attempting to build a building
+      function attemptBuildingPhase(localGameState, player, buildCmd) {
+
+        // skip if that's what they want to do
+        if (buildCmd.skip) { return localGameState; }
+
+        // returns 3 if there is no building space, otherwise it returns the empty space
+        function tileHasBuildingSpace(tile) {
+          if (tile[0] == pNONE) return 0;
+          if (tile[1] == pNONE) return 1;
+          if (tile[2] == pNONE) return 2;
+          return 3;
+        }
+
+        // otherwise, checks to see if it's a proper tile
+        if (buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) {
+          // check if the tile has space
+          const buildingSpace = tileHasBuildingSpace(localGameState.buildings[buildCmd.tile]);
+          if (buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) {
+            return {
+              winner: localGameState.winner,
+              roll: localGameState.roll,
+              round: localGameState.round,
+              turn: player,
+              phase: TRADE, // transitions to the next phase, which is trade
+              resources: localGameState.resources,
+              buildings: localGameState.buildings.set(buildCmd.tile, array(UInt, [
+                buildingSpace == 0 ? player : localGameState.buildings[buildCmd.tile][0],
+                buildingSpace == 1 ? player : localGameState.buildings[buildCmd.tile][1],
+                buildingSpace == 2 ? player : localGameState.buildings[buildCmd.tile][2],
+              ])),
+            };
+          }
+        }
+
+        // if it hasn't returned at this point, then a faulty command was given
+        return localGameState;
+      }
+
+      // ALICE: Dice Roll Phase
+      const gameState1 = diceRollPhase(gameState, pALICE);
       letPlayersSeeGameState(gameState1);
 
-      // let alice build a building if they can
-      // lmao lets not do that yet
+      // ALICE: Building Phase
+      A.only(() => {
+        const _aBuilding = interact.placeBuilding();
+        const gameState2 = declassify(
+          attemptBuildingPhase(gameState1, pALICE, _aBuilding)
+        );
+      });
+      A.publish(gameState2);
+      commit();
+      letPlayersSeeGameState(gameState2);
 
       // let alice make trades if they want
       // lmao lets not do that yet
@@ -219,7 +304,6 @@ export const main = Reach.App(
       // repeat again with carl
 
       // check to see if anyone is a winner
-      commit();
       A.only(() => {
         const test = "test";
       });

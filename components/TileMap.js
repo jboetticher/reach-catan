@@ -6,6 +6,8 @@ import Enums from '../Enums.json';
 const RSS_COLORS = Enums.RESOURCE_COLORS;
 const MAP_SIZE = 7;
 
+let bigToNum = val => { return Number.parseInt(val['_hex']); }
+
 /**
  * tile: obj{resource: int, roll: int}
  * tileSize: int
@@ -20,7 +22,7 @@ class Tile extends React.Component {
     let [resource, roll] = [Math.floor(Math.random() * (1000)) % 4, 0];
     if (tileData != null) {
       resource = tileData.rss;
-      roll = tileData.roll;
+      roll = bigToNum(tileData.roll);
     }
     else { console.log("No tile data was found, so random images were requested.") }
 
@@ -31,9 +33,13 @@ class Tile extends React.Component {
           size={tileSize} 
           fill={RSS_COLORS[resource]} 
           onClick={() => {
+            // this does, in fact, work
             console.log("THIS TILE WAS CLICKED");
           }}
         />
+        <div style={{position: 'relative', top: `-${tileSize}px`}}>
+          {roll}
+        </div>
       </div>
     );
   }
