@@ -85,16 +85,30 @@ class Player extends React.Component {
       turn: data['turn'] - 1, // in the frontend, alice = 0, not 1
     });
   }
-  placeBuilding() {
+  async placeBuilding() {
+    const buildPromise = await new Promise(resolveBuildP => {
+      this.setState({ bPlayable: true, resolveBuildP: resolveBuildP });
+    });
+
+    // i guess you could change the state here if you wanted to
+    this.setState({ bPlayable: false });
+
+    /*
     let building = {
       tile: Math.floor(Math.random() * 1000 % 6),
-      side: Math.floor(Math.random() * 1000 % 7)
+      skip: false
     };
-    console.log("Requesting a place building", building);
-    return building;
+    */
+
+    console.log("Requesting a place building", buildPromise);
+    return buildPromise;
   }
   placeBuildingCallback(buildingSuccessful) {
     console.log("Was the placing successful?", buildingSuccessful);
+  }
+  playBuilding(play) {
+    console.log("Play building:", this.state)
+    this.state.resolveBuildP(play);
   }
 
   // this is an example of player input
@@ -102,7 +116,7 @@ class Player extends React.Component {
   // not required for the game, its from rock paper scizzors
   async getHand() { // Fun([], UInt)
     const hand = await new Promise(resolveHandP => {
-      this.setState({ view: 'GetHand', playable: true, resolveHandP });
+      this.setState({ view: 'GetHand', bPlayable: true, resolveHandP });
     });
     this.setState({ view: 'WaitingForResults', hand });
     return 3;
@@ -112,12 +126,13 @@ class Player extends React.Component {
 class DeployerAlice extends Player {
   constructor(props) {
     super(props);
-    this.state = { view: 'SetWager', playerNum: 2 };
+    this.state = { view: 'SetWager', playerNum: 0 };
   }
 
   // the deployment of the backend & start of the instance
   async deploy() {
     console.log("Starting deployment.");
+    console.log("Player: " + this.state.playerNum);
 
     const ctc = this.props.acc.deploy(backend);
     this.setState({ view: 'Deploying', ctc });

@@ -7,13 +7,15 @@ class GameInfo extends React.Component {
 
     const phase = this.props.phase ?? 0;
     const turn = this.props.turn ?? 0;
+    const player = this.props.playerNum ?? 0;
+    const instructions = this.props.instructions;
 
     const panelStyle = {
       position: 'fixed',
       bottom: '0px',
       right: '0px',
       width: '250px',
-      height: '150px',
+      height: '200px',
       borderRadius: '16px',
       background: '#243a4b'
     }
@@ -25,7 +27,8 @@ class GameInfo extends React.Component {
     return (
       <div style={panelStyle}>
         <p style={textStyle}><b>Phase:</b> {Enums.GAME_PHASES[phase]} for {Enums.PLAYER_NAMES[turn]}</p>
-        <p style={textStyle}>{Enums.PHASE_DESCRIPTIONS[phase]}</p>
+        <p style={textStyle}>{instructions ?? Enums.PHASE_DESCRIPTIONS[phase]}</p>
+        <p style={textStyle}>You are {Enums.PLAYER_NAMES[player]}.</p>
       </div>
     );
   }

@@ -13,8 +13,7 @@ exports.Wrapper = class extends React.Component {
     return (
       <div className="Deployer">
         <div className={"devData"}>
-          <p>Deployer ({Enums.PLAYER_NAMES[this.props.playerNum]})</p>
-          {this.props.devOutput != null ? this.props.devOutput != null : null}
+          <p>Deployer</p>
         </div>
         {content}
       </div>

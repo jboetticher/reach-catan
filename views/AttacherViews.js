@@ -8,10 +8,11 @@ const exports = { ...PlayerViews };
 exports.Wrapper = class extends React.Component {
   render() {
     const { content } = this.props;
+
     return (
       <div className="Attacher">
         <div className={"devData"}>
-          <p>Attacher ({Enums.PLAYER_NAMES[this.props.playerNum]})</p>
+          <p>Attacher</p>
           {this.props.devOutput}
         </div>
         {content}

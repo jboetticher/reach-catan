@@ -90,12 +90,27 @@ exports.MapDisplay = class extends React.Component {
     const roll = this.props.roll;
     const phase = this.props.phase;
     const turn = this.props.turn;
+    const player = this.props.playerNum;
+
+    console.log("Map Display Props:", this.props);
+
+    const instructions = !this.props.bPlayable ? null :
+      <div>
+        <div>Choose a tile to build on (for 1 ore, 1 wood, 1 brick) or cancel.</div>
+        <button onClick={() => {
+          this.props.parent.playBuilding({
+            skip: true, tile: 0
+          })
+        }}>
+          Cancel
+        </button>
+      </div>;
 
     return (
       <div>
         <h1>Map Display</h1>
         <PlayerResourcesPanel resources={resources} roll={roll ?? 0} />
-        <GameInfo phase={phase} turn={turn} />
+        <GameInfo phase={phase} turn={turn} playerNum={player} instructions={instructions} />
         <div>
           <TileMap tileSize={100} tileData={tiles} />
         </div>

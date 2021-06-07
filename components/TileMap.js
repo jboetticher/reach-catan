@@ -17,7 +17,7 @@ class Tile extends React.Component {
     const tileSize = this.props.tileSize;
     const tileData = this.props.tile;
 
-    const divSpacer = { marginBottom: tileSize };
+    const divSpacer = { marginBottom: tileSize / 2 };
 
     let [resource, roll] = [Math.floor(Math.random() * (1000)) % 4, 0];
     if (tileData != null) {
