@@ -83,6 +83,10 @@ exports.Generating = class extends React.Component {
 }
 
 exports.MapDisplay = class extends React.Component {
+  playBuilding(buildCmd) {
+    this.props.parent.playBuilding(buildCmd);
+  }
+
   render() {
     // creates a list of tiles to add
     const tiles = this.props.tiles;
@@ -90,7 +94,8 @@ exports.MapDisplay = class extends React.Component {
     const roll = this.props.roll;
     const phase = this.props.phase;
     const turn = this.props.turn;
-    const player = this.props.playerNum;
+    const bPlayable = this.props.bPlayable;
+    const buildings = this.props.buildings;
 
     console.log("Map Display Props:", this.props);
 
@@ -98,7 +103,7 @@ exports.MapDisplay = class extends React.Component {
       <div>
         <div>Choose a tile to build on (for 1 ore, 1 wood, 1 brick) or cancel.</div>
         <button onClick={() => {
-          this.props.parent.playBuilding({
+          this.playBuilding({
             skip: true, tile: 0
           })
         }}>
@@ -110,9 +115,17 @@ exports.MapDisplay = class extends React.Component {
       <div>
         <h1>Map Display</h1>
         <PlayerResourcesPanel resources={resources} roll={roll ?? 0} />
-        <GameInfo phase={phase} turn={turn} playerNum={player} instructions={instructions} />
+        <GameInfo phase={phase} turn={turn} instructions={instructions} />
         <div>
-          <TileMap tileSize={100} tileData={tiles} />
+          <TileMap tileSize={100} 
+            tileData={tiles} 
+            bPlayable={bPlayable} 
+            buildings={buildings} 
+            resources={resources}
+            playBuilding={(buildCmd) => {
+              this.playBuilding(buildCmd);
+            }}
+          />
         </div>
       </div>
     );

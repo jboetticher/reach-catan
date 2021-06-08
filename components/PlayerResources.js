@@ -17,8 +17,6 @@ class PlayerResources extends React.Component {
     const playerNum = this.props.playerNum ?? 0;
     const resources = this.props.resources;
 
-    console.log("Resources:", resources);
-
     let text = [];
     for (let i = 0; i < RSS_NAMES.length; i++) {
       text[i] =

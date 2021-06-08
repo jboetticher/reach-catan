@@ -6,6 +6,7 @@ import { renderDOM, renderView } from './views/render';
 import './index.css';
 import * as backend from './build/index.main.mjs';
 import * as reach from '@reach-sh/stdlib/ETH';
+import { ContextProvider } from './AppContext';
 
 //#region Enums
 
@@ -45,6 +46,8 @@ class App extends React.Component {
   render() { return renderView(this, AppViews); }
 }
 
+
+
 //#region Participant Classes
 
 // Each class represents a participant as defined in index.rsh
@@ -83,6 +86,7 @@ class Player extends React.Component {
       winner: data['winner'],
       phase: data['phase'],
       turn: data['turn'] - 1, // in the frontend, alice = 0, not 1
+      buildings: data['buildings']
     });
   }
   async placeBuilding() {
@@ -103,12 +107,12 @@ class Player extends React.Component {
     console.log("Requesting a place building", buildPromise);
     return buildPromise;
   }
-  placeBuildingCallback(buildingSuccessful) {
-    console.log("Was the placing successful?", buildingSuccessful);
-  }
   playBuilding(play) {
     console.log("Play building:", this.state)
     this.state.resolveBuildP(play);
+  }
+  placeBuildingCallback(buildingSuccessful) {
+    console.log("Was the placing successful?", buildingSuccessful);
   }
 
   // this is an example of player input
@@ -126,7 +130,7 @@ class Player extends React.Component {
 class DeployerAlice extends Player {
   constructor(props) {
     super(props);
-    this.state = { view: 'SetWager', playerNum: 0 };
+    this.state = { view: 'SetWager' };
   }
 
   // the deployment of the backend & start of the instance
@@ -152,14 +156,18 @@ class DeployerAlice extends Player {
   }
 
   render() {
-    return renderView(this, DeployerViews);
+    return (
+      <ContextProvider value={{ playerNum: 0 }}>
+        {renderView(this, DeployerViews)}
+      </ContextProvider>
+    );
   }
 }
 
 class AttacherBob extends Player {
   constructor(props) {
     super(props);
-    this.state = { view: 'Attach', playerNum: 1 };
+    this.state = { view: 'Attach' };
   }
 
   // attaching to the specified backend
@@ -187,7 +195,13 @@ class AttacherBob extends Player {
     this.setState({ view: 'WaitingForTurn' });
   }
 
-  render() { return renderView(this, AttacherViews); }
+  render() {
+    return (
+      <ContextProvider value={{ playerNum: 1 }}>
+        {renderView(this, AttacherViews)}
+      </ContextProvider>
+    );
+  }
 }
 
 class AttacherCarl extends AttacherBob {
@@ -203,6 +217,14 @@ class AttacherCarl extends AttacherBob {
     const ctc = this.props.acc.attach(backend, JSON.parse(ctcInfoStr));
     this.setState({ view: 'Attaching' });
     backend.Carl(ctc, this);
+  }
+
+  render() {
+    return (
+      <ContextProvider value={{ playerNum: 2 }}>
+        {renderView(this, AttacherViews)}
+      </ContextProvider>
+    );
   }
 }
 

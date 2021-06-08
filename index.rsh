@@ -50,6 +50,8 @@ const Bob = {
 export const main = Reach.App(
   {}, [Participant('Alice', Alice), Participant('Bob', Bob), Participant('Carl', Bob)], (A, B, C) => {
 
+    // try putting first world generation step in with the wager step
+
     //#region Alice Presents Wager
 
     // shows alice's wager
@@ -83,6 +85,12 @@ export const main = Reach.App(
 
     //#region World Generation
 
+    // the following is commented out only to make development faster.
+    A.only(() => {
+      const deleteThisCode = declassify(interact.testaroonie);
+    });
+    A.publish(deleteThisCode);
+    /*
     A.only(() => {
       const _seedA = interact.getSeed();
       const [_commitA, _saltA] = makeCommitment(interact, _seedA);
@@ -124,7 +132,11 @@ export const main = Reach.App(
     });
     B.publish(saltB, seedB);
     checkCommitment(commitB, saltB, seedB);
+    */
 
+    const seedA = 324445;
+    const seedB = 164775;
+    const seedC = 824649;
     // seed is calculated from the (hopefully random) input of each player
     const seed = seedA + seedB + seedC;
 
@@ -228,6 +240,8 @@ export const main = Reach.App(
           turn: player,
           phase: BUILDING, // transitions to the next phase, which is building
           buildings: localGameState.buildings,
+
+          // yeah... right now it's just giving resources to player 1
           resources: localGameState.resources.set(0, array(UInt, [
             localGameState.resources[0][0] + 1,
             localGameState.resources[0][1] + 1,
@@ -303,7 +317,8 @@ export const main = Reach.App(
 
       // repeat again with carl
 
-      // check to see if anyone is a winner
+      // check to see if anyone is a winner (haven't finished yet)
+      // probably will just check for a summation of buildings
       A.only(() => {
         const test = "test";
       });

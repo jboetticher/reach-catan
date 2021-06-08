@@ -1,5 +1,6 @@
 import React from 'react';
 import Enums from '../Enums.json';
+import { ContextConsumer } from '../AppContext';
 
 class GameInfo extends React.Component {
 
@@ -7,7 +8,6 @@ class GameInfo extends React.Component {
 
     const phase = this.props.phase ?? 0;
     const turn = this.props.turn ?? 0;
-    const player = this.props.playerNum ?? 0;
     const instructions = this.props.instructions;
 
     const panelStyle = {
@@ -25,11 +25,19 @@ class GameInfo extends React.Component {
     };
 
     return (
-      <div style={panelStyle}>
-        <p style={textStyle}><b>Phase:</b> {Enums.GAME_PHASES[phase]} for {Enums.PLAYER_NAMES[turn]}</p>
-        <p style={textStyle}>{instructions ?? Enums.PHASE_DESCRIPTIONS[phase]}</p>
-        <p style={textStyle}>You are {Enums.PLAYER_NAMES[player]}.</p>
-      </div>
+      <ContextConsumer>
+        {appContext => {
+          console.log("App Context", appContext);
+          return (
+            <div style={panelStyle}>
+              <p style={textStyle}><b>Phase:</b> {Enums.GAME_PHASES[phase]} for {Enums.PLAYER_NAMES[turn]}</p>
+              <p style={textStyle}>{instructions ?? Enums.PHASE_DESCRIPTIONS[phase]}</p>
+              <p style={textStyle}>You are {Enums.PLAYER_NAMES[appContext.playerNum]}.</p>
+            </div>
+          );
+        }
+        }
+      </ContextConsumer>
     );
   }
 }
