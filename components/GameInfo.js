@@ -27,7 +27,6 @@ class GameInfo extends React.Component {
     return (
       <ContextConsumer>
         {appContext => {
-          console.log("App Context", appContext);
           return (
             <div style={panelStyle}>
               <p style={textStyle}><b>Phase:</b> {Enums.GAME_PHASES[phase]} for {Enums.PLAYER_NAMES[turn]}</p>

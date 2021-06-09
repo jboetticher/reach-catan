@@ -48,7 +48,6 @@ exports.Deploy = class extends React.Component {
     return (
       <ContextConsumer>
         {appContext => {
-          console.log("App Context:", appContext);
 
           return (
             <div>

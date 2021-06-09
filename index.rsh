@@ -17,6 +17,7 @@ const MAP_SIZE = 7;
 const Player =
 {
   ...hasRandom,
+  log: Fun(true, Null),
   informTimeout: Fun([], Null),
   getSeed: Fun([], UInt),
   seeMap: Fun([Array(Object({
@@ -33,7 +34,13 @@ const Player =
     buildings: Array(Array(UInt, MAXIMUM_BUILDINGS_ON_TILE), MAP_SIZE)
   })], Null),
   placeBuilding: Fun([], Object({ tile: UInt, skip: Bool })),
-  placeBuildingCallback: Fun([Bool], Null),
+  offerTrade: Fun([], Object({
+    player: UInt,
+    offer: Array(UInt, RSS_ENUM_SIZE),
+    payment: Array(UInt, RSS_ENUM_SIZE),
+    skip: Bool
+  })),
+  offerTradeCallback: Fun([Bool], Null)
 };
 const Alice = {
   ...Player,
@@ -254,40 +261,84 @@ export const main = Reach.App(
       // returns the game state when attempting to build a building
       function attemptBuildingPhase(localGameState, player, buildCmd) {
 
-        // skip if that's what they want to do
-        if (buildCmd.skip) { return localGameState; }
-
         // returns 3 if there is no building space, otherwise it returns the empty space
         function tileHasBuildingSpace(tile) {
+          interact.log(tile);
           if (tile[0] == pNONE) return 0;
           if (tile[1] == pNONE) return 1;
           if (tile[2] == pNONE) return 2;
           return 3;
         }
 
-        // otherwise, checks to see if it's a proper tile
-        if (buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) {
-          // check if the tile has space
-          const buildingSpace = tileHasBuildingSpace(localGameState.buildings[buildCmd.tile]);
-          if (buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) {
-            return {
-              winner: localGameState.winner,
-              roll: localGameState.roll,
-              round: localGameState.round,
-              turn: player,
-              phase: TRADE, // transitions to the next phase, which is trade
-              resources: localGameState.resources,
-              buildings: localGameState.buildings.set(buildCmd.tile, array(UInt, [
-                buildingSpace == 0 ? player : localGameState.buildings[buildCmd.tile][0],
-                buildingSpace == 1 ? player : localGameState.buildings[buildCmd.tile][1],
-                buildingSpace == 2 ? player : localGameState.buildings[buildCmd.tile][2],
-              ])),
-            };
+        interact.log(buildCmd);
+
+        // skip if that's what they want to do
+        return buildCmd.skip ?
+          {
+            winner: 2, // localGameState.winner,
+            roll: 0, // localGameState.roll,
+            round: 0, // localGameState.round,
+            turn: 0, // player,
+            phase: TRADE, // transitions to the next phase, which is trade
+            resources: localGameState.resources,
+            buildings: localGameState.buildings,
           }
-        }
+          : () => {
+            return (buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) ? () => {
+              const buildingSpace = tileHasBuildingSpace(localGameState.buildings[buildCmd.tile]);
+              return (buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) ?
+                {
+                  winner: 3, //localGameState.winner,
+                  roll: 0, // localGameState.roll,
+                  round: 0, // localGameState.round,
+                  turn: 0, // player,
+                  phase: TRADE, // transitions to the next phase, which is trade
+                  resources: localGameState.resources,
+                  buildings: localGameState.buildings.set(buildCmd.tile, array(UInt, [
+                    buildingSpace == 0 ? player : localGameState.buildings[buildCmd.tile][0],
+                    buildingSpace == 1 ? player : localGameState.buildings[buildCmd.tile][1],
+                    buildingSpace == 2 ? player : localGameState.buildings[buildCmd.tile][2],
+                  ]))
+                }
+                :
+                {
+                  winner: buildCmd.skip ? 1 : 0, //localGameState.winner
+                  roll: 0, // localGameState.roll
+                  round: 0, // localGameState.round
+                  turn: 0, // localGameState.round
+                  phase: TRADE, // transitions to the next phase, which is trade
+                  resources: localGameState.resources,
+                  buildings: localGameState.buildings,
+                }
+            }
+              :
+              {
+                winner: buildCmd.skip ? 1 : 0, //localGameState.winner
+                roll: 0, // localGameState.roll
+                round: 0, // localGameState.round
+                turn: 0, // localGameState.round
+                phase: TRADE, // transitions to the next phase, which is trade
+                resources: localGameState.resources,
+                buildings: localGameState.buildings,
+              }
+          }
+
+        /*
+
+      interact.log(buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE);
+      interact.log({ mapSize: MAP_SIZE, tileNum: buildCmd.tile });
 
         // if it hasn't returned at this point, then a faulty command was given
-        return localGameState;
+        return {
+          winner: localGameState.winner,
+          roll: localGameState.roll,
+          round: localGameState.round,
+          turn: player,
+          phase: TRADE, // transitions to the next phase, which is trade
+          resources: localGameState.resources,
+          buildings: localGameState.buildings,
+        };
+        */
       }
 
       // ALICE: Dice Roll Phase
@@ -297,6 +348,7 @@ export const main = Reach.App(
       // ALICE: Building Phase
       A.only(() => {
         const _aBuilding = interact.placeBuilding();
+        interact.log(_aBuilding);
         const gameState2 = declassify(
           attemptBuildingPhase(gameState1, pALICE, _aBuilding)
         );
@@ -304,6 +356,19 @@ export const main = Reach.App(
       A.publish(gameState2);
       commit();
       letPlayersSeeGameState(gameState2);
+
+      // ALICE: Trade Deal Phase
+
+      /*
+      A.only(() => {
+        const _aTrade = interact.offerTrade();
+        interact.log(_aTrade);
+        const gameState3 = declassify(
+
+        );
+      });
+      */
+
 
       // let alice make trades if they want
       // lmao lets not do that yet

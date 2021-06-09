@@ -56,10 +56,13 @@ class App extends React.Component {
 
 class Player extends React.Component {
   random() { return reach.hasRandom.random(); }
+  log(logData) { console.log("REACH LOG:", logData); }
   informTimeout() {
     console.log("Timeout is being informed.");
     this.setState({ view: 'Timeout' });
   }
+
+  // Map Generation
   getSeed() {
     let seed = Math.floor(Math.random() * (10000000));
     this.setState({ view: 'Generating' });
@@ -78,6 +81,8 @@ class Player extends React.Component {
       ]
     });
   }
+
+  // Gameplay
   seeGameState(data) {
     console.log("Game state data is being sent.", data);
     this.setState({
@@ -89,20 +94,14 @@ class Player extends React.Component {
       buildings: data['buildings']
     });
   }
+
+  // Building Phase
   async placeBuilding() {
     const buildPromise = await new Promise(resolveBuildP => {
       this.setState({ bPlayable: true, resolveBuildP: resolveBuildP });
     });
 
-    // i guess you could change the state here if you wanted to
     this.setState({ bPlayable: false });
-
-    /*
-    let building = {
-      tile: Math.floor(Math.random() * 1000 % 6),
-      skip: false
-    };
-    */
 
     console.log("Requesting a place building", buildPromise);
     return buildPromise;
@@ -115,15 +114,25 @@ class Player extends React.Component {
     console.log("Was the placing successful?", buildingSuccessful);
   }
 
-  // this is an example of player input
-  // it's asyncronous!
-  // not required for the game, its from rock paper scizzors
-  async getHand() { // Fun([], UInt)
-    const hand = await new Promise(resolveHandP => {
-      this.setState({ view: 'GetHand', bPlayable: true, resolveHandP });
+  // Trade Phase
+  async offerTrade() {
+    const tradePromise = await new Promise(resolveTradeP => {
+      this.setState({ tPlayable: true, resolveTradeP: resolveTradeP });
     });
-    this.setState({ view: 'WaitingForResults', hand });
-    return 3;
+
+    this.setState({ tPlayable: false });
+
+    console.log("Requesting a trade offer", tradePromise);
+  }
+  playOffer(play) {
+    console.log("Play trade offer:", this.state);
+    this.state.resolveTradeP(play);
+  }
+  offerTradeCallback(offerAccepted) {
+    console.log("Was the offer accepted?", offerAccepted);
+  }
+  async recieveTradeOffer() {
+
   }
 }
 

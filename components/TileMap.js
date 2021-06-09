@@ -26,7 +26,9 @@ class Tile extends React.Component {
     const tileSize = this.props.tileSize;
     const tileData = this.props.tile;
     const buildings = this.props.buildings;
-    const bPlayable = this.props.bPlayable;
+    const bPlayable = this.props.bPlayable && 
+      buildings != null && 
+      !(bigToNum(buildings[0]) != 0 && bigToNum(buildings[1]) != 0 && bigToNum(buildings[2]) != 0);
     const playBuilding = this.props.playBuilding;
 
     const divSpacer = { marginBottom: tileSize / 2 };
@@ -37,6 +39,28 @@ class Tile extends React.Component {
       roll = bigToNum(tileData.roll);
     }
     else { console.log("No tile data was found, so random images were requested.") }
+
+    function BuildingInfo(props) {
+      let playerNumArr = [
+        bigToNum(buildings?.[0]) - 1,
+        bigToNum(buildings?.[1]) - 1,
+        bigToNum(buildings?.[2]) - 1
+      ];
+      let playerNameArr = [];
+      for (let i = 0; i < playerNumArr.length; i++) {
+        if (playerNumArr[i] >= 0) playerNameArr[i] = PLAYER_NAMES[playerNumArr[i]];
+        else playerNameArr[i] = "No building.";
+      }
+    
+      return (
+        <>
+          <div>Building Slot 1: {playerNameArr[0]}</div>
+          <div>Building Slot 2: {playerNameArr[1]}</div>
+          <div>Building Slot 3: {playerNameArr[2]}</div>
+        </>
+      );
+    }
+    
 
     return (
       <ContextConsumer>
@@ -64,48 +88,23 @@ class Tile extends React.Component {
               >
                 <div>Resource: {RSS_NAMES[resource]}</div>
                 <div>Roll: {roll}</div>
-                {() => {
-                  return(
-                    <div>IF YOU SEE THIS THEN YOU UNDERSTAND RENDER PROPERLY</div>
-                  )
-                }
-                }
                 {buildings != null ?
-                  () => {
-                    let playerNumArr = [
-                      bigToNum(buildings?.[0]) - 1,
-                      bigToNum(buildings?.[1]) - 1,
-                      bigToNum(buildings?.[2]) - 1
-                    ];
-                    let playerNameArr = [];
-                    for (let i = 0; i < playerNumArr.length; i++) {
-                      if (playerNumArr[i] >= 0) playerNameArr[i] = PLAYER_NAMES[playerNumArr[i]];
-                      else playerNameArr[i] = "No building.";
-                    }
-
-                    return (
-                      <>
-                        <div>Building Slot 1: {playerNameArr[0]}</div>
-                        <div>Building Slot 2: {playerNameArr[1]}</div>
-                        <div>Building Slot 3: {playerNameArr[2]}</div>
-                      </>
-                    )
-                  }
+                  <BuildingInfo />
                   : <></>
                 }
                 <div style={{ display: 'flex' }} >
                   <button onClick={() => { this.setState({ isOpen: false }); }}>
                     Close
                 </button>
-                  {bPlayable ?
-                    <button onClick={() => {
-                      playBuilding({
-                        skip: false, tile: this.props.tileNum
-                      });
-                    }}>
-                      Build
-                  </button> : <></>
-                  }
+                {bPlayable ?
+                  <button onClick={() => {
+                    playBuilding({
+                      skip: false, tile: this.props.tileNum
+                    });
+                  }}>
+                    Build
+                </button> : <></>
+                }
                 </div>
               </ReactModal>
             </div>

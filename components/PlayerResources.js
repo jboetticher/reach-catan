@@ -47,7 +47,6 @@ class PlayerResourcesPanel extends React.Component {
     ];
     console.log("Rendering the player resources panel: ", resources);
     const roll = bigToNum(this.props.roll);
-    console.log("roll:", roll);
 
     return (
       <div className="topRight d-flex">
