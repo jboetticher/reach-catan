@@ -7,7 +7,7 @@ const PLAYER_COUNT = 3;
 const MAXIMUM_BUILDINGS_ON_TILE = 3;
 const [isResource, WHEAT, ORE, WOOD, BRICK] = makeEnum(RSS_ENUM_SIZE);
 const [isPlayer, pNONE, pALICE, pBOB, pCARL] = makeEnum(4);
-const [isGamePhase, RESOUCE_GEN, BUILDING, TRADE] = makeEnum(3);
+const [isGamePhase, RESOURCE_GEN, BUILDING, TRADE] = makeEnum(3);
 
 //#endregion
 
@@ -35,11 +35,16 @@ const Player =
   })], Null),
   placeBuilding: Fun([], Object({ tile: UInt, skip: Bool })),
   offerTrade: Fun([], Object({
-    player: UInt,
+    recievePlayer: UInt,
     offer: Array(UInt, RSS_ENUM_SIZE),
     payment: Array(UInt, RSS_ENUM_SIZE),
     skip: Bool
   })),
+  recieveTradeOffer: Fun([Object({
+    offerPlayer: UInt,
+    offer: Array(UInt, RSS_ENUM_SIZE),
+    payment: Array(UInt, RSS_ENUM_SIZE)
+  })], Bool),
   offerTradeCallback: Fun([Bool], Null)
 };
 const Alice = {
@@ -56,8 +61,6 @@ const Bob = {
 
 export const main = Reach.App(
   {}, [Participant('Alice', Alice), Participant('Bob', Bob), Participant('Carl', Bob)], (A, B, C) => {
-
-    // try putting first world generation step in with the wager step
 
     //#region Alice Presents Wager
 
@@ -92,7 +95,8 @@ export const main = Reach.App(
 
     //#region World Generation
 
-    // the following is commented out only to make development faster.
+    //@TODO: Try putting first world generation step in with the wager step
+    //@TODO: Delete the two statements below and uncomment the true logic
     A.only(() => {
       const deleteThisCode = declassify(interact.testaroonie);
     });
@@ -194,7 +198,7 @@ export const main = Reach.App(
       // stores which player is supposed to be playing
       turn: pALICE,
       // stores the player's phase of the game
-      phase: RESOUCE_GEN,
+      phase: RESOURCE_GEN,
       //buildings
       buildings: array(Array(UInt, MAXIMUM_BUILDINGS_ON_TILE), [
         createStarterBuildingArray(),
@@ -208,12 +212,12 @@ export const main = Reach.App(
     };
 
     invariant(
-      isPlayer(gameState.winner) &&
+      isPlayer(gameState.winner) && //fails
       gameState.resources.length == PLAYER_COUNT &&
-      gameState.roll >= 2 && gameState.roll <= 12 &&
+      gameState.roll >= 2 && gameState.roll <= 12 && //fails
       gameState.round >= 0 &&
-      isPlayer(gameState.turn) &&
-      isGamePhase(gameState.phase) &&
+      isPlayer(gameState.turn) && // fails
+      isGamePhase(gameState.phase) && //fails
       balance() == wager * PLAYER_COUNT
     );
 
@@ -225,6 +229,17 @@ export const main = Reach.App(
         each([A, B, C], () => {
           interact.seeGameState(localGameState);
         });
+      }
+
+      // returns true if the specified player has enough resources in the localGameState
+      function ensurePlayerHasResources(localGameState, player, resources) {
+        //resources.length != localGameState.resources[player].length ? false :
+        return ( //TODO!!: first 0 should be player
+          localGameState.resources[0][0] >= resources[0] &&
+          localGameState.resources[0][1] >= resources[1] &&
+          localGameState.resources[0][2] >= resources[2] &&
+          localGameState.resources[0][3] >= resources[3]
+        );
       }
 
       // rolls the dice and gives players the correct amount of resources
@@ -239,6 +254,7 @@ export const main = Reach.App(
          */
         const localRoll =
           ((seedA + seedB) * gameState.round) % 6 + ((seedB + seedC) * gameState.round % 6) + 2;
+        assert(localRoll < 12);
 
         return {
           winner: localGameState.winner,
@@ -270,8 +286,21 @@ export const main = Reach.App(
           return 3;
         }
 
-        interact.log(buildCmd);
+        //interact.log(buildCmd);
 
+        //@TODO: Uncomment the first comment block below and fix it. This is just to skip the build phase while it doesn't work.
+        return {
+          winner: localGameState.winner,
+          roll: localGameState.roll,
+          round: localGameState.round,
+          turn: localGameState.turn,
+          phase: TRADE, // transitions to the next phase, which is trade
+          resources: localGameState.resources,
+          buildings: localGameState.buildings,
+        }
+
+
+        /*
         // skip if that's what they want to do
         return buildCmd.skip ?
           {
@@ -322,11 +351,12 @@ export const main = Reach.App(
                 buildings: localGameState.buildings,
               }
           }
+        */
 
         /*
 
-      interact.log(buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE);
-      interact.log({ mapSize: MAP_SIZE, tileNum: buildCmd.tile });
+        interact.log(buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE);
+        interact.log({ mapSize: MAP_SIZE, tileNum: buildCmd.tile });
 
         // if it hasn't returned at this point, then a faulty command was given
         return {
@@ -341,40 +371,108 @@ export const main = Reach.App(
         */
       }
 
+      // returns the game state after an attempted trade offer
+      function attemptTradeOffer(localGameState, player, nextPlayer, tradeResponse, tradeOffer) {
+        // this doesn't work because of compiler errors but it's how it should work
+        if(!tradeResponse) {
+          return {
+            winner: localGameState.winner,
+            roll: localGameState.roll,
+            round: localGameState.round,
+            turn: nextPlayer, // next player assuming trading is the last step
+            phase: RESOURCE_GEN, // transitions to the next phase, which is rss generation
+            buildings: localGameState.buildings,
+            resources: localGameState.resources,
+          };
+        }
+        else {
+          const aliceRss = array(UInt, [0, 0, 0, 0]);
+          const bobRss = array(UInt, [0, 0, 0, 0]);
+          const carlRss = array(UInt, [0, 0, 0, 0]);
+
+          return {
+            winner: localGameState.winner,
+            roll: localGameState.roll,
+            round: localGameState.round,
+            turn: nextPlayer, // next player assuming trading is the last step
+            phase: RESOURCE_GEN, // transitions to next phase
+            buildings: localGameState.buildings,
+            resources: array(Array(UInt, RSS_ENUM_SIZE), [aliceRss, bobRss, carlRss])
+          };
+        }
+      }
+
+
+      // returns true if the trade deal is allowed, false if otherwise
+
       // ALICE: Dice Roll Phase
       const gameState1 = diceRollPhase(gameState, pALICE);
       letPlayersSeeGameState(gameState1);
-
+      
       // ALICE: Building Phase
       A.only(() => {
-        const _aBuilding = interact.placeBuilding();
-        interact.log(_aBuilding);
-        const gameState2 = declassify(
-          attemptBuildingPhase(gameState1, pALICE, _aBuilding)
-        );
+        const aBuilding = declassify(interact.placeBuilding());
       });
-      A.publish(gameState2);
+      A.publish(aBuilding);
       commit();
+
+      const gameState2 = attemptBuildingPhase(gameState1, pALICE, aBuilding);
       letPlayersSeeGameState(gameState2);
 
       // ALICE: Trade Deal Phase
-
-      /*
       A.only(() => {
-        const _aTrade = interact.offerTrade();
-        interact.log(_aTrade);
-        const gameState3 = declassify(
-
-        );
+        const aTrade = declassify(interact.offerTrade());
+        interact.log(aTrade);
       });
-      */
+      A.publish(aTrade);
 
+      const aTradeAllowed =
+        !aTrade.skip &&
+        isPlayer(aTrade.recievePlayer) &&
+        ensurePlayerHasResources(gameState2, pALICE, aTrade.offer) &&
+        ensurePlayerHasResources(gameState2, aTrade.recievePlayer, aTrade.payment);
+      const bobCanTrade = aTrade.recievePlayer == pBOB;
+      const carlCanTrade = aTrade.recievePlayer == pCARL;
+      commit();
+      
+      B.only(() => {
+        const _bTradeResponse = aTradeAllowed && bobCanTrade ? interact.recieveTradeOffer({
+          offerPlayer: pALICE,
+          offer: aTrade.offer,
+          payment: aTrade.payment
+        }) : false;
+        const bTradeResponse = declassify(_bTradeResponse);
+      });
+      B.publish(bTradeResponse);
 
-      // let alice make trades if they want
-      // lmao lets not do that yet
+      const gameState3B = attemptTradeOffer(
+        gameState2,
+        pALICE,
+        pBOB,
+        aTradeAllowed && bobCanTrade ? bTradeResponse : false,
+        aTrade);
+      commit();
 
-      // let whoever gets the trade accept or not accept the deal
-      // lmao lets not do that yet
+      C.only(() => {
+        const _cTradeResponse = aTradeAllowed && carlCanTrade ? interact.recieveTradeOffer({
+          offerPlayer: pALICE,
+          offer: aTrade.offer,
+          payment: aTrade.payment
+        }) : false;
+        const cTradeResponse = declassify(_cTradeResponse);
+      });
+      C.publish(cTradeResponse);
+
+      const gameState3C = attemptTradeOffer(
+        gameState2, 
+        pALICE, 
+        pCARL, 
+        aTradeAllowed && carlCanTrade ? cTradeResponse : false, 
+        aTrade);
+      commit();
+      
+      const gameState3 = bobCanTrade ? gameState3B : gameState3C;
+      letPlayersSeeGameState(gameState3);
 
 
 
@@ -388,7 +486,7 @@ export const main = Reach.App(
         const test = "test";
       });
       A.publish(test);
-      gameState = gameState1;
+      gameState = gameState3;
 
       continue;
     }

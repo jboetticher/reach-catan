@@ -131,8 +131,18 @@ class Player extends React.Component {
   offerTradeCallback(offerAccepted) {
     console.log("Was the offer accepted?", offerAccepted);
   }
-  async recieveTradeOffer() {
+  async recieveTradeOffer(offer) {
+    const recieveOfferPromise = await new Promise(resolveOfferP => {
+      this.setState({ oPlayable: true, offer: offer, resolveOfferP: resolveOfferP });
+    });
 
+    this.setState({ oPlayable: false });
+
+    console.log("Responding to trade offer", recieveOfferPromise);
+  }
+  playOfferReply(play) {
+    console.log("Returning the trade offer", this.state);
+    this.state.resolveOfferP(play);
   }
 }
 

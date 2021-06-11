@@ -87,6 +87,10 @@ exports.MapDisplay = class extends React.Component {
     this.props.parent.playBuilding(buildCmd);
   }
 
+  playTrade(tradeCmd) {
+    this.props.parent.playTrade(tradeCmd);
+  }
+
   render() {
     // creates a list of tiles to add
     const tiles = this.props.tiles;
@@ -99,35 +103,42 @@ exports.MapDisplay = class extends React.Component {
 
     console.log("Map Display Props:", this.props);
 
-    const instructions = !this.props.bPlayable ? null :
-      <div>
-        <div>Choose a tile to build on (for 1 ore, 1 wood, 1 brick) or cancel.</div>
-        <button onClick={() => {
-          this.playBuilding({
-            skip: true, tile: 0
-          })
-        }}>
-          Cancel
+    const instructions =
+      this.props.bPlayable ?
+        <div>
+          <div>Choose a tile to build on (for 1 ore, 1 wood, 1 brick) or cancel.</div>
+          <button onClick={() => {
+            this.playBuilding({
+              skip: true, tile: 0
+            })
+          }}>
+            Cancel
         </button>
-      </div>;
+        </div> :
+        this.props.tPlayable ?
+          <div>
+            <div>Offer a trade deal to a player, or cancel.</div>
+          </div> :
+        null;
 
     return (
       <div>
         <h1>Map Display</h1>
         <PlayerResourcesPanel resources={resources} roll={roll ?? 0} />
         <GameInfo phase={phase} turn={turn} instructions={instructions} />
+        <TradeModal resources={resources} />
         <div>
-          <TileMap tileSize={100} 
-            tileData={tiles} 
-            bPlayable={bPlayable} 
-            buildings={buildings} 
-            resources={resources}
-            playBuilding={(buildCmd) => {
-              this.playBuilding(buildCmd);
-            }}
-          />
-        </div>
+        <TileMap tileSize={100}
+          tileData={tiles}
+          bPlayable={bPlayable}
+          buildings={buildings}
+          resources={resources}
+          playBuilding={(buildCmd) => {
+            this.playBuilding(buildCmd);
+          }}
+        />
       </div>
+      </div >
     );
   }
 }
