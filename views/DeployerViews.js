@@ -3,6 +3,7 @@ import PlayerViews from './PlayerViews';
 import ReactLoading from 'react-loading';
 import Enums from '../Enums.json';
 import { ContextConsumer } from '../AppContext';
+import TradeModal from '../components/TradeModal';
 
 const exports = { ...PlayerViews };
 
@@ -48,7 +49,6 @@ exports.Deploy = class extends React.Component {
     return (
       <ContextConsumer>
         {appContext => {
-
           return (
             <div>
               Wager (pay to deploy): <strong>{wager}</strong> {standardUnit}
@@ -56,6 +56,7 @@ exports.Deploy = class extends React.Component {
               <button
                 onClick={() => parent.deploy()}
               >Deploy</button>
+              <TradeModal tPlayable={true} oPlayable={false} />
             </div>
           )
         }}

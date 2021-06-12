@@ -1,8 +1,10 @@
 import React from 'react';
 import TileMap from '../components/TileMap';
 import GameInfo from '../components/GameInfo';
+import TradeModal from '../components/TradeModal';
 import { PlayerResourcesPanel } from '../components/PlayerResources';
 import ReactLoading from 'react-loading';
+import { ContextConsumer } from '../AppContext';
 
 const exports = {};
 
@@ -100,44 +102,76 @@ exports.MapDisplay = class extends React.Component {
     const turn = this.props.turn;
     const bPlayable = this.props.bPlayable;
     const buildings = this.props.buildings;
+    const offer = this.props.offer;
 
     console.log("Map Display Props:", this.props);
 
-    const instructions =
-      this.props.bPlayable ?
-        <div>
-          <div>Choose a tile to build on (for 1 ore, 1 wood, 1 brick) or cancel.</div>
-          <button onClick={() => {
-            this.playBuilding({
-              skip: true, tile: 0
-            })
-          }}>
-            Cancel
+    let instructions = null;
+
+    // if it's the player's turn to build
+    if (this.props.bPlayable) instructions =
+      <div>
+        <div>Choose a tile to build on (for 1 ore, 1 wood, 1 brick) or cancel.</div>
+        <button onClick={() => {
+          this.playBuilding({
+            skip: true, tile: 0
+          })
+        }}>
+          Cancel
+          </button>
+      </div>;
+
+    // if it's the player's turn to offer a trade
+    else if (this.props.tPlayable) instructions =
+      <div>
+        <div>Offer a trade deal to a player, or cancel.</div>
+        <button onClick={() => {
+
+        }}>
+          Trade
         </button>
-        </div> :
-        this.props.tPlayable ?
-          <div>
-            <div>Offer a trade deal to a player, or cancel.</div>
-          </div> :
-        null;
+        <button>
+          Cancel
+        </button>
+        <TradeModal resources={resources} tPlayable={true} />
+      </div>;
+
+    // if the player has recieved an offer
+    else if (offer != null && this.props.phase == 2) instructions =
+      <div>
+        <ContextConsumer>
+          {appContext => {
+            const isPlayerRecievingOffer = appContext.playerNum == (this.props.offer.recievePlayer - 1);
+            if (isPlayerRecievingOffer) {
+              return (
+                <TradeModal resources={resources} offer={offer} tPlayable={false} oPlayable={true} />
+              );
+            }
+            else {
+              return (
+                <div>Another player has recieved the trade offer.</div>
+              );
+            }
+          }}
+        </ContextConsumer>
+      </div>;
 
     return (
       <div>
         <h1>Map Display</h1>
         <PlayerResourcesPanel resources={resources} roll={roll ?? 0} />
         <GameInfo phase={phase} turn={turn} instructions={instructions} />
-        <TradeModal resources={resources} />
         <div>
-        <TileMap tileSize={100}
-          tileData={tiles}
-          bPlayable={bPlayable}
-          buildings={buildings}
-          resources={resources}
-          playBuilding={(buildCmd) => {
-            this.playBuilding(buildCmd);
-          }}
-        />
-      </div>
+          <TileMap tileSize={100}
+            tileData={tiles}
+            bPlayable={bPlayable}
+            buildings={buildings}
+            resources={resources}
+            playBuilding={(buildCmd) => {
+              this.playBuilding(buildCmd);
+            }}
+          />
+        </div>
       </div >
     );
   }

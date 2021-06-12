@@ -5,7 +5,9 @@ import Enums from '../Enums.json';
 const PLAYER_COLORS = Enums.PLAYER_COLORS;
 const RSS_NAMES = Enums.RESOUCE_NAMES;
 
-let bigToNum = val => { return Number.parseInt(val['_hex']); }
+let bigToNum = val => { 
+  return typeof(val) == 'number' ? val : Number.parseInt(val['_hex']); 
+}
 
 /**
  * playerNum - int

@@ -101,7 +101,7 @@ class Player extends React.Component {
       this.setState({ bPlayable: true, resolveBuildP: resolveBuildP });
     });
 
-    this.setState({ bPlayable: false });
+    this.setState({ bPlayable: false, resolveBuildP: null });
 
     console.log("Requesting a place building", buildPromise);
     return buildPromise;
@@ -120,7 +120,7 @@ class Player extends React.Component {
       this.setState({ tPlayable: true, resolveTradeP: resolveTradeP });
     });
 
-    this.setState({ tPlayable: false });
+    this.setState({ tPlayable: false, resolveTradeP: null });
 
     console.log("Requesting a trade offer", tradePromise);
   }
@@ -136,7 +136,7 @@ class Player extends React.Component {
       this.setState({ oPlayable: true, offer: offer, resolveOfferP: resolveOfferP });
     });
 
-    this.setState({ oPlayable: false });
+    this.setState({ oPlayable: false, resolveOfferP: null });
 
     console.log("Responding to trade offer", recieveOfferPromise);
   }

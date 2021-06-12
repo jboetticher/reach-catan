@@ -279,86 +279,61 @@ export const main = Reach.App(
 
         // returns 3 if there is no building space, otherwise it returns the empty space
         function tileHasBuildingSpace(tile) {
-          interact.log(tile);
-          if (tile[0] == pNONE) return 0;
-          if (tile[1] == pNONE) return 1;
-          if (tile[2] == pNONE) return 2;
-          return 3;
+          const result = 3 
+            - (tile[0] == pNONE ? 1 : 0)
+            - (tile[1] == pNONE ? 1 : 0)
+            - (tile[2] == pNONE ? 1 : 0);
+          return result;
         }
 
-        //interact.log(buildCmd);
+        A.interact.log(buildCmd);
 
-        //@TODO: Uncomment the first comment block below and fix it. This is just to skip the build phase while it doesn't work.
-        return {
-          winner: localGameState.winner,
-          roll: localGameState.roll,
-          round: localGameState.round,
-          turn: localGameState.turn,
-          phase: TRADE, // transitions to the next phase, which is trade
-          resources: localGameState.resources,
-          buildings: localGameState.buildings,
-        }
-
-
-        /*
-        // skip if that's what they want to do
-        return buildCmd.skip ?
-          {
-            winner: 2, // localGameState.winner,
-            roll: 0, // localGameState.roll,
-            round: 0, // localGameState.round,
-            turn: 0, // player,
+        // skips if that's what the player wants to do
+        if(buildCmd.skip) {
+          //A.interact.log("It got within the skip, so it should be returning winner as 2.");
+          return {
+            winner: localGameState.winner,
+            roll: localGameState.roll,
+            round: localGameState.round,
+            turn: player,
             phase: TRADE, // transitions to the next phase, which is trade
             resources: localGameState.resources,
             buildings: localGameState.buildings,
-          }
-          : () => {
-            return (buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) ? () => {
-              const buildingSpace = tileHasBuildingSpace(localGameState.buildings[buildCmd.tile]);
-              return (buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) ?
-                {
-                  winner: 3, //localGameState.winner,
-                  roll: 0, // localGameState.roll,
-                  round: 0, // localGameState.round,
-                  turn: 0, // player,
-                  phase: TRADE, // transitions to the next phase, which is trade
-                  resources: localGameState.resources,
-                  buildings: localGameState.buildings.set(buildCmd.tile, array(UInt, [
-                    buildingSpace == 0 ? player : localGameState.buildings[buildCmd.tile][0],
-                    buildingSpace == 1 ? player : localGameState.buildings[buildCmd.tile][1],
-                    buildingSpace == 2 ? player : localGameState.buildings[buildCmd.tile][2],
-                  ]))
-                }
-                :
-                {
-                  winner: buildCmd.skip ? 1 : 0, //localGameState.winner
-                  roll: 0, // localGameState.roll
-                  round: 0, // localGameState.round
-                  turn: 0, // localGameState.round
-                  phase: TRADE, // transitions to the next phase, which is trade
-                  resources: localGameState.resources,
-                  buildings: localGameState.buildings,
-                }
-            }
-              :
-              {
-                winner: buildCmd.skip ? 1 : 0, //localGameState.winner
-                roll: 0, // localGameState.roll
-                round: 0, // localGameState.round
-                turn: 0, // localGameState.round
-                phase: TRADE, // transitions to the next phase, which is trade
-                resources: localGameState.resources,
-                buildings: localGameState.buildings,
-              }
-          }
-        */
+          };
+        }
 
-        /*
+        // issues the command if that's what the player wants to do
+        else if(buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) {
 
-        interact.log(buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE);
-        interact.log({ mapSize: MAP_SIZE, tileNum: buildCmd.tile });
+          //A.interact.log("It got within the second if condition.");
+          const buildingSpace = tileHasBuildingSpace(localGameState.buildings[buildCmd.tile]);
+          //A.interact.log(buildingSpace);
+          //A.interact.log(MAXIMUM_BUILDINGS_ON_TILE);
+
+          // if the tile to build on has space
+          if(buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) {
+            //A.interact.log("It got within the third if condition.");
+            return {
+              winner: localGameState.winner,
+              roll: localGameState.roll,
+              round: localGameState.round,
+              turn: player,
+              phase: TRADE, // transitions to the next phase, which is trade
+              resources: localGameState.resources,
+              buildings: localGameState.buildings.set(buildCmd.tile, array(UInt, [
+                buildingSpace == 0 ? player : localGameState.buildings[buildCmd.tile][0],
+                buildingSpace == 1 ? player : localGameState.buildings[buildCmd.tile][1],
+                buildingSpace == 2 ? player : localGameState.buildings[buildCmd.tile][2],
+              ]))
+            };
+          }
+        }
 
         // if it hasn't returned at this point, then a faulty command was given
+        // i would put an else statement here but that doesn't compile
+        A.interact.log("A faulty command was given, so we're returning as normal.");
+
+
         return {
           winner: localGameState.winner,
           roll: localGameState.roll,
@@ -368,7 +343,6 @@ export const main = Reach.App(
           resources: localGameState.resources,
           buildings: localGameState.buildings,
         };
-        */
       }
 
       // returns the game state after an attempted trade offer
@@ -403,13 +377,14 @@ export const main = Reach.App(
       }
 
 
-      // returns true if the trade deal is allowed, false if otherwise
 
       // ALICE: Dice Roll Phase
+      A.interact.log("Dice Roll Phase");
       const gameState1 = diceRollPhase(gameState, pALICE);
       letPlayersSeeGameState(gameState1);
       
       // ALICE: Building Phase
+      A.interact.log("Building Phase");
       A.only(() => {
         const aBuilding = declassify(interact.placeBuilding());
       });
@@ -486,7 +461,7 @@ export const main = Reach.App(
         const test = "test";
       });
       A.publish(test);
-      gameState = gameState3;
+      gameState = gameState2;
 
       continue;
     }
