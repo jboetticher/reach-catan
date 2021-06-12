@@ -5,8 +5,8 @@ import AttacherViews from './views/AttacherViews';
 import { renderDOM, renderView } from './views/render';
 import './index.css';
 import * as backend from './build/index.main.mjs';
-//import * as reach from '@reach-sh/stdlib/ETH';
-import * as reach from '@reach-sh/stdlib/ALGO';
+import * as reach from '@reach-sh/stdlib/ETH';
+//import * as reach from '@reach-sh/stdlib/ALGO';
 import { ContextProvider } from './AppContext';
 
 //#region Enums
@@ -102,7 +102,7 @@ class Player extends React.Component {
       this.setState({ bPlayable: true, resolveBuildP: resolveBuildP });
     });
 
-    this.setState({ bPlayable: false, resolveBuildP: null });
+    this.setState({ bPlayable: false });
 
     console.log("Requesting a place building", buildPromise);
     return buildPromise;
@@ -121,11 +121,12 @@ class Player extends React.Component {
       this.setState({ tPlayable: true, resolveTradeP: resolveTradeP });
     });
 
-    this.setState({ tPlayable: false, resolveTradeP: null });
+    this.setState({ tPlayable: false });
 
     console.log("Requesting a trade offer", tradePromise);
+    return tradePromise;
   }
-  playOffer(play) {
+  playOfferTrade(play) {
     console.log("Play trade offer:", this.state);
     this.state.resolveTradeP(play);
   }
@@ -133,16 +134,17 @@ class Player extends React.Component {
     console.log("Was the offer accepted?", offerAccepted);
   }
   async recieveTradeOffer(offer) {
+    console.log("Incoming trade offer: ", offer);
     const recieveOfferPromise = await new Promise(resolveOfferP => {
       this.setState({ oPlayable: true, offer: offer, resolveOfferP: resolveOfferP });
     });
 
-    this.setState({ oPlayable: false, resolveOfferP: null });
+    this.setState({ oPlayable: false });
 
     console.log("Responding to trade offer", recieveOfferPromise);
+    return recieveOfferPromise;
   }
   playOfferReply(play) {
-    console.log("Returning the trade offer", this.state);
     this.state.resolveOfferP(play);
   }
 }

@@ -78,7 +78,7 @@ exports.Generating = class extends React.Component {
         <p>
           The contract is generating the world.
           Please accept any new transactions to continue the process.
-      </p>
+        </p>
       </div>
     );
   }
@@ -89,8 +89,12 @@ exports.MapDisplay = class extends React.Component {
     this.props.parent.playBuilding(buildCmd);
   }
 
-  playTrade(tradeCmd) {
-    this.props.parent.playTrade(tradeCmd);
+  playOfferTrade(offerCmd) {
+    this.props.parent.playOfferTrade(offerCmd);
+  }
+
+  playOfferReply(tradeCmd) {
+    this.props.parent.playOfferReply(tradeCmd);
   }
 
   render() {
@@ -103,6 +107,8 @@ exports.MapDisplay = class extends React.Component {
     const bPlayable = this.props.bPlayable;
     const buildings = this.props.buildings;
     const offer = this.props.offer;
+    const tPlayable = this.props.tPlayable;
+    const oPlayable = this.props.oPlayable;
 
     console.log("Map Display Props:", this.props);
 
@@ -118,14 +124,19 @@ exports.MapDisplay = class extends React.Component {
           })
         }}>
           Cancel
-          </button>
+        </button>
       </div>;
 
     // if it's the player's turn to offer a trade
-    else if (this.props.tPlayable) instructions =
+    else if (tPlayable) instructions =
       <div>
         <div>Offer a trade deal to a player, or cancel.</div>
-        <TradeModal resources={resources} tPlayable={true} />
+        <TradeModal
+          resources={resources}
+          tPlayable={true}
+          playOfferTrade={e => { this.playOfferTrade(e) }}
+          playOfferReply={e => { this.playOfferReply(e) }}
+        />
       </div>;
 
     // if the player has recieved an offer
@@ -133,17 +144,14 @@ exports.MapDisplay = class extends React.Component {
       <div>
         <ContextConsumer>
           {appContext => {
-            const isPlayerRecievingOffer = appContext.playerNum == (this.props.offer.recievePlayer - 1);
-            if (isPlayerRecievingOffer) {
-              return (
-                <TradeModal resources={resources} offer={offer} tPlayable={false} oPlayable={true} />
-              );
-            }
-            else {
-              return (
-                <div>Another player has recieved the trade offer.</div>
-              );
-            }
+            return (
+              <TradeModal
+                resources={resources} offer={offer}
+                tPlayable={false} oPlayable={oPlayable}
+                playOfferTrade={e => { this.playOfferTrade(e) }}
+                playOfferReply={e => { this.playOfferReply(e) }}
+              />
+            );
           }}
         </ContextConsumer>
       </div>;

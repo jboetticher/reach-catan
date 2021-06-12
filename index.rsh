@@ -145,6 +145,7 @@ export const main = Reach.App(
     checkCommitment(commitB, saltB, seedB);
     */
 
+    //@TODO: Remove these seeds because they conflict with the generated ones
     const seedA = 324445;
     const seedB = 164775;
     const seedC = 824649;
@@ -279,7 +280,7 @@ export const main = Reach.App(
 
         // returns 3 if there is no building space, otherwise it returns the empty space
         function tileHasBuildingSpace(tile) {
-          const result = 3 
+          const result = 3
             - (tile[0] == pNONE ? 1 : 0)
             - (tile[1] == pNONE ? 1 : 0)
             - (tile[2] == pNONE ? 1 : 0);
@@ -287,9 +288,12 @@ export const main = Reach.App(
         }
 
         //A.interact.log(buildCmd);
+        A.only(() => { interact.log("Trying out writing here.") });
+        A.publish();
+        commit();
 
         // skips if that's what the player wants to do
-        if(buildCmd.skip) {
+        if (buildCmd.skip) {
           //A.interact.log("It got within the skip, so it should be returning winner as 2.");
           return {
             winner: localGameState.winner,
@@ -303,7 +307,7 @@ export const main = Reach.App(
         }
 
         // issues the command if that's what the player wants to do
-        else if(buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) {
+        else if (buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) {
 
           //A.interact.log("It got within the second if condition.");
           const buildingSpace = tileHasBuildingSpace(localGameState.buildings[buildCmd.tile]);
@@ -311,10 +315,10 @@ export const main = Reach.App(
           //A.interact.log(MAXIMUM_BUILDINGS_ON_TILE);
 
           // if the tile to build on has space
-          if(buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) {
+          if (buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) {
             //A.interact.log("It got within the third if condition.");
-            A.only(() => { interact.log("It got within the third if condition.") });
-            
+
+
             return {
               winner: localGameState.winner,
               roll: localGameState.roll,
@@ -347,10 +351,20 @@ export const main = Reach.App(
         };
       }
 
+      function calculateRSSDifference(currentVal, tradePlayer, tradeOffer, examinedPlayer, rssIndex) {
+        const result = tradePlayer == examinedPlayer ?
+          ((currentVal + tradeOffer.offer[rssIndex]) - tradeOffer.payment[rssIndex]) :
+          tradeOffer.recievePlayer == examinedPlayer ?
+            ((currentVal + tradeOffer.payment[rssIndex]) - tradeOffer.offer[rssIndex]) : 0;
+        return result;
+      }
+
       // returns the game state after an attempted trade offer
       function attemptTradeOffer(localGameState, player, nextPlayer, tradeResponse, tradeOffer) {
+
+
         // this doesn't work because of compiler errors but it's how it should work
-        if(!tradeResponse) {
+        if (!tradeResponse) {
           return {
             winner: localGameState.winner,
             roll: localGameState.roll,
@@ -362,9 +376,24 @@ export const main = Reach.App(
           };
         }
         else {
-          const aliceRss = array(UInt, [0, 0, 0, 0]);
-          const bobRss = array(UInt, [0, 0, 0, 0]);
-          const carlRss = array(UInt, [0, 0, 0, 0]);
+          const aliceRss = array(UInt, [
+            calculateRSSDifference(localGameState.resources[0][WHEAT], player, tradeOffer, 0, WHEAT),
+            calculateRSSDifference(localGameState.resources[0][ORE], player, tradeOffer, 0, ORE),
+            localGameState.resources[0][WOOD] + 1000,// + calculateRSSDifference(0, WOOD),
+            localGameState.resources[0][BRICK] + 1000,// + calculateRSSDifference(0, BRICK)
+          ]);          
+          const bobRss = array(UInt, [
+            calculateRSSDifference(localGameState.resources[1][WHEAT], player, tradeOffer, 1, WHEAT),
+            0, //calculateRSSDifference(localGameState.resources[1][ORE], player, tradeOffer, 1, ORE),
+            0, //localGameState.resources[1][WOOD] + calculateRSSDifference(1, WOOD),
+            0, //localGameState.resources[1][BRICK] + calculateRSSDifference(1, BRICK)
+          ]);
+          const carlRss = array(UInt, [
+            0, //calculateRSSDifference(localGameState.resources[2][WHEAT], 2, WHEAT),
+            0, //localGameState.resources[2][ORE] + calculateRSSDifference(2, ORE),
+            0, //localGameState.resources[2][WOOD] + calculateRSSDifference(2, WOOD),
+            0, //localGameState.resources[2][BRICK] + calculateRSSDifference(2, BRICK)
+          ]);
 
           return {
             winner: localGameState.winner,
@@ -384,8 +413,8 @@ export const main = Reach.App(
       A.interact.log("Dice Roll Phase");
       const gameState1 = diceRollPhase(gameState, pALICE);
       letPlayersSeeGameState(gameState1);
-      
-      
+
+
       // ALICE: Building Phase
       A.interact.log("Building Phase");
       A.only(() => {
@@ -397,7 +426,6 @@ export const main = Reach.App(
       const gameState2 = attemptBuildingPhase(gameState1, pALICE, aBuilding);
       letPlayersSeeGameState(gameState2);
 
-      /*
       // ALICE: Trade Deal Phase
       A.only(() => {
         const aTrade = declassify(interact.offerTrade());
@@ -410,10 +438,13 @@ export const main = Reach.App(
         isPlayer(aTrade.recievePlayer) &&
         ensurePlayerHasResources(gameState2, pALICE, aTrade.offer) &&
         ensurePlayerHasResources(gameState2, aTrade.recievePlayer, aTrade.payment);
+      A.interact.log(aTradeAllowed);
       const bobCanTrade = aTrade.recievePlayer == pBOB;
+      A.interact.log(bobCanTrade);
       const carlCanTrade = aTrade.recievePlayer == pCARL;
+      A.interact.log(carlCanTrade);
       commit();
-      
+
       B.only(() => {
         const _bTradeResponse = aTradeAllowed && bobCanTrade ? interact.recieveTradeOffer({
           offerPlayer: pALICE,
@@ -426,8 +457,8 @@ export const main = Reach.App(
 
       const gameState3B = attemptTradeOffer(
         gameState2,
-        pALICE,
-        pBOB,
+        pALICE, // the person who offered it
+        pBOB, // the next player
         aTradeAllowed && bobCanTrade ? bTradeResponse : false,
         aTrade);
       commit();
@@ -443,16 +474,15 @@ export const main = Reach.App(
       C.publish(cTradeResponse);
 
       const gameState3C = attemptTradeOffer(
-        gameState2, 
-        pALICE, 
-        pCARL, 
-        aTradeAllowed && carlCanTrade ? cTradeResponse : false, 
+        gameState2,
+        pALICE,  // the person who offered it
+        pBOB, // the next player
+        aTradeAllowed && carlCanTrade ? cTradeResponse : false,
         aTrade);
       commit();
-      
+
       const gameState3 = bobCanTrade ? gameState3B : gameState3C;
       letPlayersSeeGameState(gameState3);
-*/
 
 
       // repeat the last four steps with bob
@@ -465,7 +495,7 @@ export const main = Reach.App(
         const test = "test";
       });
       A.publish(test);
-      gameState = gameState2;
+      gameState = gameState3;
 
       continue;
     }
