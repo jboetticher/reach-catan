@@ -125,14 +125,6 @@ exports.MapDisplay = class extends React.Component {
     else if (this.props.tPlayable) instructions =
       <div>
         <div>Offer a trade deal to a player, or cancel.</div>
-        <button onClick={() => {
-
-        }}>
-          Trade
-        </button>
-        <button>
-          Cancel
-        </button>
         <TradeModal resources={resources} tPlayable={true} />
       </div>;
 

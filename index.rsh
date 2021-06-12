@@ -286,7 +286,7 @@ export const main = Reach.App(
           return result;
         }
 
-        A.interact.log(buildCmd);
+        //A.interact.log(buildCmd);
 
         // skips if that's what the player wants to do
         if(buildCmd.skip) {
@@ -313,6 +313,8 @@ export const main = Reach.App(
           // if the tile to build on has space
           if(buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) {
             //A.interact.log("It got within the third if condition.");
+            A.only(() => { interact.log("It got within the third if condition.") });
+            
             return {
               winner: localGameState.winner,
               roll: localGameState.roll,
@@ -331,7 +333,7 @@ export const main = Reach.App(
 
         // if it hasn't returned at this point, then a faulty command was given
         // i would put an else statement here but that doesn't compile
-        A.interact.log("A faulty command was given, so we're returning as normal.");
+        //A.interact.log("A faulty command was given, so we're returning as normal.");
 
 
         return {
@@ -383,6 +385,7 @@ export const main = Reach.App(
       const gameState1 = diceRollPhase(gameState, pALICE);
       letPlayersSeeGameState(gameState1);
       
+      
       // ALICE: Building Phase
       A.interact.log("Building Phase");
       A.only(() => {
@@ -394,6 +397,7 @@ export const main = Reach.App(
       const gameState2 = attemptBuildingPhase(gameState1, pALICE, aBuilding);
       letPlayersSeeGameState(gameState2);
 
+      /*
       // ALICE: Trade Deal Phase
       A.only(() => {
         const aTrade = declassify(interact.offerTrade());
@@ -448,7 +452,7 @@ export const main = Reach.App(
       
       const gameState3 = bobCanTrade ? gameState3B : gameState3C;
       letPlayersSeeGameState(gameState3);
-
+*/
 
 
       // repeat the last four steps with bob

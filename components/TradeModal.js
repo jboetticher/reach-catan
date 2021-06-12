@@ -14,10 +14,10 @@ let bigToNum = val => {
 */
 let TradeModal = props => {
   const [isOpen, setIsOpen] = useState(false);
-  const [wheat, setWheat] = useState(0);
-  const [ore, setOre] = useState(0);
-  const [wood, setWood] = useState(0);
-  const [brick, setBrick] = useState(0);
+  const [pWheat, setPriceWheat] = useState(0);
+  const [pOre, setPriceOre] = useState(0);
+  const [pWood, setPriceWood] = useState(0);
+  const [pBrick, setPriceBrick] = useState(0);
 
   const offer = props.offer;
   let resources = props.resources ?? [
@@ -29,23 +29,7 @@ let TradeModal = props => {
 
   const recievedOffer = offer != null && oPlayable;
 
-  const playerResourceInfo = [];
-  for (let i = 0; i < 3; i++) {
-    playerResourceInfo[i] =
-      <div style={{ margin: 'auto' }} >
-        <PlayerResources playerNum={i} resources={resources[i]} />
-        {tPlayable ?
-          <button disabled={
-            resources[i][0] < wheat ||
-            resources[i][1] < ore ||
-            resources[i][2] < wood ||
-            resources[i][3] < brick
-          }>
-            Send Offer to {Enums.PLAYER_NAMES[i]}
-          </button> : <></>
-        }
-      </div>
-  }
+
 
   return (
     <ContextConsumer>
@@ -72,15 +56,31 @@ let TradeModal = props => {
               <h4>Offer a Trade</h4>
               <div>Offer a trade to a specific player.</div>
               <div style={{ display: 'flex', marginTop: '25px' }}>
-                {playerResourceInfo}
+                {() => {
+                  for (let i = 0; i < 3; i++) {
+                    <div style={{ margin: 'auto' }} >
+                      <PlayerResources playerNum={i} resources={resources[i]} />
+                      {tPlayable ?
+                        <button disabled={
+                          resources[i][0] < pWheat ||
+                          resources[i][1] < pOre ||
+                          resources[i][2] < pWood ||
+                          resources[i][3] < pBrick
+                        }>
+                          Send Offer to {Enums.PLAYER_NAMES[i]}
+                        </button> : <></>
+                      }
+                    </div>
+                  }
+                }}
               </div>
               {tPlayable ?
                 <>
                   <div style={{ display: 'flex', marginTop: '25px' }}>
-                    <TradeInput rssName={Enums.RESOUCE_NAMES[0]} rssChangeCallback={setWheat} />
-                    <TradeInput rssName={Enums.RESOUCE_NAMES[1]} rssChangeCallback={setOre} />
-                    <TradeInput rssName={Enums.RESOUCE_NAMES[2]} rssChangeCallback={setWood} />
-                    <TradeInput rssName={Enums.RESOUCE_NAMES[3]} rssChangeCallback={setBrick} />
+                    <TradeInput rssName={Enums.RESOUCE_NAMES[0]} rssChangeCallback={setPriceWheat} />
+                    <TradeInput rssName={Enums.RESOUCE_NAMES[1]} rssChangeCallback={setPriceOre} />
+                    <TradeInput rssName={Enums.RESOUCE_NAMES[2]} rssChangeCallback={setPriceWood} />
+                    <TradeInput rssName={Enums.RESOUCE_NAMES[3]} rssChangeCallback={setPriceBrick} />
                   </div>
                   <button onClick={() => { setIsOpen(false); }}>Cancel</button>
                 </> : recievedOffer ?
