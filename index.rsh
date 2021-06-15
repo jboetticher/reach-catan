@@ -287,14 +287,29 @@ export const main = Reach.App(
           return result;
         }
 
-        //A.interact.log(buildCmd);
-        A.only(() => { interact.log("Trying out writing here.") });
-        A.publish();
-        commit();
+        /*@BUG-186
+         * After updating reach on 6/14/2021 at 6:00 PST, the unhandled rejection disappeared,
+         * but strange behaviour associated with it continued. 
+         * 
+         * To demonstrate, run the program as it is now. Click on a tile as player 1, and 
+         * click build. After a few smart contract interactions, it should appear as built.
+         * Then, redo the process but this time remove all of the "A.interact" calls within
+         * this function. Doing the same as before will not result in the same output.
+         * 
+         * I have noticed that this functionality relies on the "A.interact" being within the
+         * if/else statements.
+         * 
+         * I still recieve an unhandled rejection further down the line, after the build phase.
+         * To see it, first compile with the "A.interact" lines uncommented. During the build
+         * phase, build a building. Then, during the trade phase, cancel the trade.
+         * 
+         * Note that for some reason this will not occur when then user opts to "cancel" the
+         * building phase (skipping the conditional "A.interact" lines).
+         */
 
         // skips if that's what the player wants to do
         if (buildCmd.skip) {
-          //A.interact.log("It got within the skip, so it should be returning winner as 2.");
+          A.interact.log("It got within the skip, so it should be returning winner as 2.");
           return {
             winner: localGameState.winner,
             roll: localGameState.roll,
@@ -309,15 +324,14 @@ export const main = Reach.App(
         // issues the command if that's what the player wants to do
         else if (buildCmd.tile >= 0 && buildCmd.tile < MAP_SIZE) {
 
-          //A.interact.log("It got within the second if condition.");
+          A.interact.log("It got within the second if condition.");
           const buildingSpace = tileHasBuildingSpace(localGameState.buildings[buildCmd.tile]);
-          //A.interact.log(buildingSpace);
-          //A.interact.log(MAXIMUM_BUILDINGS_ON_TILE);
+          A.interact.log(buildingSpace);
+          A.interact.log(MAXIMUM_BUILDINGS_ON_TILE);
 
           // if the tile to build on has space
           if (buildingSpace < MAXIMUM_BUILDINGS_ON_TILE) {
-            //A.interact.log("It got within the third if condition.");
-
+            A.interact.log("It got within the third if condition.");
 
             return {
               winner: localGameState.winner,
@@ -336,9 +350,6 @@ export const main = Reach.App(
         }
 
         // if it hasn't returned at this point, then a faulty command was given
-        // i would put an else statement here but that doesn't compile
-        //A.interact.log("A faulty command was given, so we're returning as normal.");
-
 
         return {
           winner: localGameState.winner,
@@ -378,8 +389,8 @@ export const main = Reach.App(
         else {
           const aliceRss = array(UInt, [
             calculateRSSDifference(localGameState.resources[0][WHEAT], player, tradeOffer, 0, WHEAT),
-            calculateRSSDifference(localGameState.resources[0][ORE], player, tradeOffer, 0, ORE),
-            localGameState.resources[0][WOOD] + 1000,// + calculateRSSDifference(0, WOOD),
+            0,//calculateRSSDifference(localGameState.resources[0][ORE], player, tradeOffer, 0, ORE),
+            0, //localGameState.resources[0][WOOD] + 1000,// + calculateRSSDifference(0, WOOD),
             localGameState.resources[0][BRICK] + 1000,// + calculateRSSDifference(0, BRICK)
           ]);          
           const bobRss = array(UInt, [
