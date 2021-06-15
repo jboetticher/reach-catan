@@ -5,8 +5,8 @@ import AttacherViews from './views/AttacherViews';
 import { renderDOM, renderView } from './views/render';
 import './index.css';
 import * as backend from './build/index.main.mjs';
-import * as reach from '@reach-sh/stdlib/ETH';
-//import * as reach from '@reach-sh/stdlib/ALGO';
+//import * as reach from '@reach-sh/stdlib/ETH';
+import * as reach from '@reach-sh/stdlib/ALGO';
 import { ContextProvider } from './AppContext';
 
 //#region Enums

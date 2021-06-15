@@ -101,6 +101,7 @@ export const main = Reach.App(
       const deleteThisCode = declassify(interact.testaroonie);
     });
     A.publish(deleteThisCode);
+
     /*
     A.only(() => {
       const _seedA = interact.getSeed();
@@ -235,7 +236,7 @@ export const main = Reach.App(
       // returns true if the specified player has enough resources in the localGameState
       function ensurePlayerHasResources(localGameState, player, resources) {
         //resources.length != localGameState.resources[player].length ? false :
-        if(isPlayer(player)) {
+        if (isPlayer(player)) {
           const playerAdaptedToArray = player - 1;
           return (
             localGameState.resources[playerAdaptedToArray][0] >= resources[0] &&
@@ -270,13 +271,27 @@ export const main = Reach.App(
           phase: BUILDING, // transitions to the next phase, which is building
           buildings: localGameState.buildings,
 
-          // yeah... right now it's just giving resources to player 1
-          resources: localGameState.resources.set(0, array(UInt, [
-            localGameState.resources[0][0] + 1,
-            localGameState.resources[0][1] + 1,
-            localGameState.resources[0][2] + 1,
-            localGameState.resources[0][3] + 1
-          ]))
+          // yeah... right now it's just giving resources to each player
+          resources: array(Array(UInt, 4), [
+            array(UInt, [
+              localGameState.resources[0][0] + 1,
+              localGameState.resources[0][1] + 1,
+              localGameState.resources[0][2] + 1,
+              localGameState.resources[0][3] + 1
+            ]),
+            array(UInt, [
+              localGameState.resources[1][0] + 1,
+              localGameState.resources[1][1] + 1,
+              localGameState.resources[1][2] + 1,
+              localGameState.resources[1][3] + 1
+            ]),
+            array(UInt, [
+              localGameState.resources[2][0] + 1,
+              localGameState.resources[2][1] + 1,
+              localGameState.resources[2][2] + 1,
+              localGameState.resources[2][3] + 1
+            ]),
+          ])
         };
       }
 
@@ -399,7 +414,7 @@ export const main = Reach.App(
             calculateRSSDifference(localGameState.resources[0][ORE], player, tradeOffer, pALICE, ORE),
             calculateRSSDifference(localGameState.resources[0][WOOD], player, tradeOffer, pALICE, WOOD),
             calculateRSSDifference(localGameState.resources[0][BRICK], player, tradeOffer, pALICE, BRICK),
-          ]);          
+          ]);
           const bobRss = array(UInt, [
             calculateRSSDifference(localGameState.resources[1][WHEAT], player, tradeOffer, pBOB, WHEAT),
             calculateRSSDifference(localGameState.resources[1][ORE], player, tradeOffer, pBOB, ORE),
@@ -456,64 +471,218 @@ export const main = Reach.App(
         isPlayer(aTrade.recievePlayer) &&
         ensurePlayerHasResources(gameState2, pALICE, aTrade.offer) &&
         ensurePlayerHasResources(gameState2, aTrade.recievePlayer, aTrade.payment);
-      A.interact.log(aTradeAllowed);
       const bobCanTrade = aTrade.recievePlayer == pBOB;
-      A.interact.log(bobCanTrade);
-      const carlCanTrade = aTrade.recievePlayer == pCARL;
-      A.interact.log(carlCanTrade);
+      const carlCanTradeA = aTrade.recievePlayer == pCARL;
       commit();
 
       B.only(() => {
-        const _bTradeResponse = aTradeAllowed && bobCanTrade ? interact.recieveTradeOffer({
+        const _bTradeResponseA = aTradeAllowed && bobCanTrade ? interact.recieveTradeOffer({
           offerPlayer: pALICE,
           offer: aTrade.offer,
           payment: aTrade.payment
         }) : false;
-        const bTradeResponse = declassify(_bTradeResponse);
+        const bTradeResponseA = declassify(_bTradeResponseA);
       });
-      B.publish(bTradeResponse);
+      B.publish(bTradeResponseA);
 
-      const gameState3B = attemptTradeOffer(
+      const aGameState3B = attemptTradeOffer(
         gameState2,
         pALICE, // the person who offered it
         pBOB, // the next player
-        aTradeAllowed && bobCanTrade ? bTradeResponse : false,
+        aTradeAllowed && bobCanTrade ? bTradeResponseA : false,
         aTrade);
       commit();
 
       C.only(() => {
-        const _cTradeResponse = aTradeAllowed && carlCanTrade ? interact.recieveTradeOffer({
+        const _cTradeResponseA = aTradeAllowed && carlCanTradeA ? interact.recieveTradeOffer({
           offerPlayer: pALICE,
           offer: aTrade.offer,
           payment: aTrade.payment
         }) : false;
-        const cTradeResponse = declassify(_cTradeResponse);
+        const cTradeResponseA = declassify(_cTradeResponseA);
       });
-      C.publish(cTradeResponse);
+      C.publish(cTradeResponseA);
 
-      const gameState3C = attemptTradeOffer(
+      const aGameState3C = attemptTradeOffer(
         gameState2,
         pALICE,  // the person who offered it
         pBOB, // the next player
-        aTradeAllowed && carlCanTrade ? cTradeResponse : false,
+        aTradeAllowed && carlCanTradeA ? cTradeResponseA : false,
         aTrade);
       commit();
 
-      const gameState3 = bobCanTrade ? gameState3B : gameState3C;
+      const gameState3 = bobCanTrade ? aGameState3B : aGameState3C;
       letPlayersSeeGameState(gameState3);
 
 
-      // repeat the last four steps with bob
+
+
+
+      // BOB: Dice Roll Phase
+      A.interact.log("Dice Roll Phase");
+      const gameState4 = diceRollPhase(gameState3, pBOB);
+      letPlayersSeeGameState(gameState4);
+
+      // BOB: Building Phase
+      B.only(() => {
+        const bBuilding = declassify(interact.placeBuilding());
+      });
+      B.publish(bBuilding);
+      commit();
+      const gameState5 = attemptBuildingPhase(gameState4, pBOB, bBuilding);
+      letPlayersSeeGameState(gameState5);
+
+      // BOB: Trading Phase
+      B.only(() => {
+        const bTrade = declassify(interact.offerTrade());
+        interact.log(bTrade);
+      });
+      B.publish(bTrade);
+
+      const bTradeAllowed =
+        !bTrade.skip &&
+        isPlayer(bTrade.recievePlayer) &&
+        ensurePlayerHasResources(gameState5, pBOB, bTrade.offer) &&
+        ensurePlayerHasResources(gameState5, bTrade.recievePlayer, bTrade.payment);
+      const aliceCanTradeB = bTrade.recievePlayer == pALICE;
+      const carlCanTradeB = bTrade.recievePlayer == pCARL;
+      B.interact.log(bTradeAllowed);
+      B.interact.log(aliceCanTradeB);
+      B.interact.log(carlCanTradeB);
+      commit();
+
+      A.only(() => {
+        const _aTradeResponseB = bTradeAllowed && aliceCanTradeB ? interact.recieveTradeOffer({
+          offerPlayer: pBOB,
+          offer: bTrade.offer,
+          payment: aTrade.payment
+        }) : false;
+        const aTradeResponseB = declassify(_aTradeResponseB);
+      });
+      A.publish(aTradeResponseB);
+
+      const bGameState6B = attemptTradeOffer(
+        gameState5,
+        pBOB, // the person who offered it
+        pCARL, // the next player
+        bTradeAllowed && aliceCanTradeB ? aTradeResponseB : false,
+        bTrade);
+      commit();
+
+      C.only(() => {
+        const _cTradeResponseB = bTradeAllowed && carlCanTradeB ? interact.recieveTradeOffer({
+          offerPlayer: pBOB,
+          offer: bTrade.offer,
+          payment: bTrade.payment
+        }) : false;
+        const cTradeResponseB = declassify(_cTradeResponseB);
+      });
+      C.publish(cTradeResponseB);
+
+      const bGameState6C = attemptTradeOffer(
+        gameState5,
+        pBOB,  // the person who offered it
+        pCARL, // the next player
+        aTradeAllowed && carlCanTradeB ? cTradeResponseB : false,
+        aTrade);
+      commit();
+
+      const gameState6 = aliceCanTradeB ? bGameState6B : bGameState6C;
+      letPlayersSeeGameState(gameState6);
+
+
 
       // repeat again with carl
 
+      // CARL: Dice Roll Phase
+      const gameState7 = diceRollPhase(gameState6, pCARL);
+      letPlayersSeeGameState(gameState7);
+
+      // CARL: Building Phase
+      C.only(() => {
+        const cBuilding = declassify(interact.placeBuilding());
+      });
+      C.publish(cBuilding);
+      commit();
+      const gameState8 = attemptBuildingPhase(gameState7, pCARL, cBuilding);
+      letPlayersSeeGameState(gameState8);
+
+      // CARL: Trading Phase
+      C.only(() => {
+        const cTrade = declassify(interact.offerTrade());
+        interact.log(cTrade);
+      });
+      C.publish(cTrade);
+
+      const cTradeAllowed =
+        !cTrade.skip &&
+        isPlayer(cTrade.recievePlayer) &&
+        ensurePlayerHasResources(gameState8, pCARL, cTrade.offer) &&
+        ensurePlayerHasResources(gameState8, cTrade.recievePlayer, cTrade.payment);
+      const aliceCanTradeC = cTrade.recievePlayer == pALICE;
+      const bobCanTradeC = cTrade.recievePlayer == pBOB;
+      commit();
+
+      A.only(() => {
+        const _aTradeResponseC = cTradeAllowed && aliceCanTradeC ? interact.recieveTradeOffer({
+          offerPlayer: pCARL,
+          offer: cTrade.offer,
+          payment: cTrade.payment
+        }) : false;
+        const aTradeResponseC = declassify(_aTradeResponseC);
+      });
+      A.publish(aTradeResponseC);
+
+      const cGameState9A = attemptTradeOffer(
+        gameState8,
+        pCARL, // the person who offered it
+        pALICE, // the next player
+        cTradeAllowed && aliceCanTradeB ? aTradeResponseC : false,
+        cTrade);
+      commit();
+
+      B.only(() => {
+        const _bTradeResponseC = cTradeAllowed && bobCanTradeC ? interact.recieveTradeOffer({
+          offerPlayer: pCARL,
+          offer: cTrade.offer,
+          payment: cTrade.payment
+        }) : false;
+        const bTradeResponseC = declassify(_bTradeResponseC);
+      });
+      B.publish(bTradeResponseC);
+
+      const cGameState9B = attemptTradeOffer(
+        gameState8,
+        pCARL,  // the person who offered it
+        pALICE, // the next player
+        cTradeAllowed && bobCanTradeC ? bTradeResponseC : false,
+        cTrade);
+      commit();
+
+      const gameState9 = aliceCanTradeC ? cGameState9A : cGameState9B;
+      letPlayersSeeGameState(gameState9);
+
+
+
+
+
       // check to see if anyone is a winner (haven't finished yet)
       // probably will just check for a summation of buildings
-      A.only(() => {
-        const test = "test";
-      });
-      A.publish(test);
-      gameState = gameState3;
+      const gameState10 = {
+        winner: gameState9.resources[0][0] >= 10 ?
+          pALICE : gameState9.resources[1][0] >= 10 ?
+            pBOB : gameState9.resources[0][0] >= 10 ?
+              pCARL : pNONE,
+        roll: gameState9.roll,
+        round: gameState9.round,
+        turn: gameState9.turn,
+        phase: gameState9.phase, // transitions to the next phase, which is trade
+        resources: gameState9.resources,
+        buildings: gameState9.buildings,
+      }
+      A.publish();
+
+      gameState = gameState10;
 
       continue;
     }
