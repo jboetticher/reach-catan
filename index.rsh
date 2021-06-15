@@ -235,12 +235,17 @@ export const main = Reach.App(
       // returns true if the specified player has enough resources in the localGameState
       function ensurePlayerHasResources(localGameState, player, resources) {
         //resources.length != localGameState.resources[player].length ? false :
-        return ( //TODO!!: first 0 should be player
-          localGameState.resources[0][0] >= resources[0] &&
-          localGameState.resources[0][1] >= resources[1] &&
-          localGameState.resources[0][2] >= resources[2] &&
-          localGameState.resources[0][3] >= resources[3]
-        );
+        if(isPlayer(player)) {
+          const playerAdaptedToArray = player - 1;
+          return (
+            localGameState.resources[playerAdaptedToArray][0] >= resources[0] &&
+            localGameState.resources[playerAdaptedToArray][1] >= resources[1] &&
+            localGameState.resources[playerAdaptedToArray][2] >= resources[2] &&
+            localGameState.resources[playerAdaptedToArray][3] >= resources[3]
+          );
+        } else {
+          return false;
+        }
       }
 
       // rolls the dice and gives players the correct amount of resources
@@ -364,15 +369,17 @@ export const main = Reach.App(
 
       function calculateRSSDifference(currentVal, tradePlayer, tradeOffer, examinedPlayer, rssIndex) {
         const result = tradePlayer == examinedPlayer ?
-          ((currentVal + tradeOffer.offer[rssIndex]) - tradeOffer.payment[rssIndex]) :
+          ((currentVal + tradeOffer.payment[rssIndex]) - tradeOffer.offer[rssIndex]) :
           tradeOffer.recievePlayer == examinedPlayer ?
-            ((currentVal + tradeOffer.payment[rssIndex]) - tradeOffer.offer[rssIndex]) : 0;
+            ((currentVal + tradeOffer.offer[rssIndex]) - tradeOffer.payment[rssIndex]) : currentVal;
         return result;
       }
 
       // returns the game state after an attempted trade offer
       function attemptTradeOffer(localGameState, player, nextPlayer, tradeResponse, tradeOffer) {
-
+        B.interact.log(localGameState);
+        B.interact.log(tradeOffer);
+        B.interact.log(player);
 
         // this doesn't work because of compiler errors but it's how it should work
         if (!tradeResponse) {
@@ -388,22 +395,22 @@ export const main = Reach.App(
         }
         else {
           const aliceRss = array(UInt, [
-            calculateRSSDifference(localGameState.resources[0][WHEAT], player, tradeOffer, 0, WHEAT),
-            0,//calculateRSSDifference(localGameState.resources[0][ORE], player, tradeOffer, 0, ORE),
-            0, //localGameState.resources[0][WOOD] + 1000,// + calculateRSSDifference(0, WOOD),
-            localGameState.resources[0][BRICK] + 1000,// + calculateRSSDifference(0, BRICK)
+            calculateRSSDifference(localGameState.resources[0][WHEAT], player, tradeOffer, pALICE, WHEAT),
+            calculateRSSDifference(localGameState.resources[0][ORE], player, tradeOffer, pALICE, ORE),
+            calculateRSSDifference(localGameState.resources[0][WOOD], player, tradeOffer, pALICE, WOOD),
+            calculateRSSDifference(localGameState.resources[0][BRICK], player, tradeOffer, pALICE, BRICK),
           ]);          
           const bobRss = array(UInt, [
-            calculateRSSDifference(localGameState.resources[1][WHEAT], player, tradeOffer, 1, WHEAT),
-            0, //calculateRSSDifference(localGameState.resources[1][ORE], player, tradeOffer, 1, ORE),
-            0, //localGameState.resources[1][WOOD] + calculateRSSDifference(1, WOOD),
-            0, //localGameState.resources[1][BRICK] + calculateRSSDifference(1, BRICK)
+            calculateRSSDifference(localGameState.resources[1][WHEAT], player, tradeOffer, pBOB, WHEAT),
+            calculateRSSDifference(localGameState.resources[1][ORE], player, tradeOffer, pBOB, ORE),
+            calculateRSSDifference(localGameState.resources[1][WOOD], player, tradeOffer, pBOB, WOOD),
+            calculateRSSDifference(localGameState.resources[1][BRICK], player, tradeOffer, pBOB, BRICK),
           ]);
           const carlRss = array(UInt, [
-            0, //calculateRSSDifference(localGameState.resources[2][WHEAT], 2, WHEAT),
-            0, //localGameState.resources[2][ORE] + calculateRSSDifference(2, ORE),
-            0, //localGameState.resources[2][WOOD] + calculateRSSDifference(2, WOOD),
-            0, //localGameState.resources[2][BRICK] + calculateRSSDifference(2, BRICK)
+            calculateRSSDifference(localGameState.resources[2][WHEAT], player, tradeOffer, pCARL, WHEAT),
+            calculateRSSDifference(localGameState.resources[2][ORE], player, tradeOffer, pCARL, ORE),
+            calculateRSSDifference(localGameState.resources[2][WOOD], player, tradeOffer, pCARL, WOOD),
+            calculateRSSDifference(localGameState.resources[2][BRICK], player, tradeOffer, pCARL, BRICK),
           ]);
 
           return {
