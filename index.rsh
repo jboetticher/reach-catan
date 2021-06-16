@@ -669,9 +669,9 @@ export const main = Reach.App(
       // check to see if anyone is a winner (haven't finished yet)
       // probably will just check for a summation of buildings
       const gameState10 = {
-        winner: gameState9.resources[0][0] >= 10 ?
-          pALICE : gameState9.resources[1][0] >= 10 ?
-            pBOB : gameState9.resources[0][0] >= 10 ?
+        winner: gameState9.resources[0][0] >= 12 ?
+          pALICE : gameState9.resources[1][0] >= 12 ?
+            pBOB : gameState9.resources[0][0] >= 12 ?
               pCARL : pNONE,
         roll: gameState9.roll,
         round: gameState9.round,

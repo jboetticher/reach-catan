@@ -94,6 +94,10 @@ class Player extends React.Component {
       turn: data['turn'] - 1, // in the frontend, alice = 0, not 1
       buildings: data['buildings']
     });
+
+    if(winner != 0) {
+      this.setState({ view: 'Done' });
+    }
   }
 
   // Building Phase

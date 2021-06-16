@@ -5,6 +5,7 @@ import TradeModal from '../components/TradeModal';
 import { PlayerResourcesPanel } from '../components/PlayerResources';
 import ReactLoading from 'react-loading';
 import { ContextConsumer } from '../AppContext';
+import Enums from '../Enums.json';
 
 const exports = {};
 
@@ -49,11 +50,11 @@ exports.WaitingForResults = class extends React.Component {
 
 exports.Done = class extends React.Component {
   render() {
-    const { outcome } = this.props;
+    const { winner } = this.props;
     return (
       <div>
-        Thank you for playing. The outcome of this game was:
-        <br />{outcome || 'Unknown'}
+        Thank you for playing. The winner was:
+        <br />{Enums.PLAYER_NAMES[winner - 1] || 'Unknown'}
       </div>
     );
   }
