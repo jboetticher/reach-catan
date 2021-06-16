@@ -95,7 +95,7 @@ class Player extends React.Component {
       buildings: data['buildings']
     });
 
-    if(winner != 0) {
+    if(data['winner'] != 0) {
       this.setState({ view: 'Done' });
     }
   }
